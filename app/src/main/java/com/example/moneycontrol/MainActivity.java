@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -347,7 +348,7 @@ public class MainActivity extends AppCompatActivity {
         cursor.close();
     }
 
-    private void setTodaySum(){todayOut.setText(todaySum());}
+    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", todaySum()));}
 
     /**
      * 今日の支出
