@@ -1,0 +1,28 @@
+<resources>
+    <string name="app_name">MoneyControl</string>
+    <string name="edit_money">金額</string>
+    <string name="button_income">収入</string>
+    <string name="button_outgo">支出</string>
+    <string name="select_genre">ジャンル選択</string>
+    <string name="button_move">資金移動</string>
+    <string name="cancel">キャンセル</string>
+    <string name="moveEnter">実行</string>
+    <string name="memo">メモ</string>
+
+    <string name="table_none_time">-/- --:--</string>
+    <string name="status_income">△</string>
+    <string name="status_outgo">▼</string>
+    <string name="table_none">---</string>
+    <string name="today_title">今日の支出</string>
+    <string name="str_Time">Time</string>
+    <string name="str_Status">Status</string>
+    <string name="str_Money">Money</string>
+    <string name="str_Wallet">Wallet</string>
+    <string name="str_Note">Note</string>
+    <string name="sql_datetime_format">%m/%d %H:%M</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+    <string name="database_table_title">MoneyDatabase</string>
+
+    <string name="buttonWidth">100dp</string>
+    <string name="buttonHeight">50dp</string>
+</resources>
