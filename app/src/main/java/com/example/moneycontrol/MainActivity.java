@@ -344,8 +344,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void setTodaySum(){todayOut.setText(todaySum());}
 
-    //change test
-
     /**
      * 今日の支出
      * @return int 支出
