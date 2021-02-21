@@ -52,7 +52,8 @@ public class MainActivity extends AppCompatActivity {
     private MCOpenHelper helper;
     private SQLiteDatabase db;
 
-    private enum IOM {INCOME, OUTGO, MOVE};
+    private enum IOM {INCOME, OUTGO, MOVE}
+
     private boolean isMove; //資金移動かどうか
 
     @SuppressLint("ClickableViewAccessibility")
@@ -84,50 +85,38 @@ public class MainActivity extends AppCompatActivity {
         btn_move = findViewById(R.id.moveButton);
 
         //入力欄からfocusが外れたらキーボードを消す
-        editMoney.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean hasFocus) {
-                if(!hasFocus){
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                }
+        editMoney.setOnFocusChangeListener((view, hasFocus) -> {
+            if(!hasFocus){
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             }
         });
-        editMemo.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean hasFocus) {
-                if(!hasFocus){
-                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                    imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                }
+        editMemo.setOnFocusChangeListener((view, hasFocus) -> {
+            if(!hasFocus){
+                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
             }
         });
 
         //背景をタッチした時focusを奪う
-        findViewById(R.id.backGroundLayout).setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                view.requestFocus();
-                return true;
-            }
+        findViewById(R.id.backGroundLayout).setOnTouchListener((view, motionEvent) -> {
+            view.requestFocus();
+            return true;
         });
 
         //addButtonでeditMoneyする
         FloatingActionButton aB = findViewById(R.id.addButton);
-        aB.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                editMoney.requestFocus();
-                InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT,InputMethodManager.HIDE_NOT_ALWAYS);
-            }
+        aB.setOnClickListener(view -> {
+            editMoney.requestFocus();
+            InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT,InputMethodManager.HIDE_NOT_ALWAYS);
         });
 
         btn_in.setOnTouchListener(otl);
         btn_out.setOnTouchListener(otl);
 
         //spinnerにwalletを設定する
-        List<String> LS = helper.tableColumnToArray(db, helper.WALLET_TABLE, "name");
+        List<String> LS = helper.tableColumnToArray(db, MCOpenHelper.WALLET_TABLE, "name");
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         setTodaySum();
@@ -151,10 +140,8 @@ public class MainActivity extends AppCompatActivity {
         switch (action) {
             case MotionEvent.ACTION_MOVE:
                 if (isInButton /* && view instanceof Button */) {
-                    //Log.d("move", "sizeUp");
                     btn.setText(getString(isIncome ? R.string.button_income : R.string.button_outgo));
                 } else {
-                    //Log.d("move", "sizeDown");
                     btn.setText(getString(R.string.select_genre));
                 }
                 break;
@@ -171,16 +158,11 @@ public class MainActivity extends AppCompatActivity {
                     //genre設定してiomButton
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     List<String> list = helper.tableColumnToArray(
-                            db, isIncome ? helper.INCOME_GENRE_TABLE : helper.OUTGO_GENRE_TABLE,
+                            db, isIncome ? MCOpenHelper.INCOME_GENRE_TABLE : MCOpenHelper.OUTGO_GENRE_TABLE,
                             "name");
-                    String[] item = list.toArray(new String[list.size()]);
+                    String[] item = list.toArray(new String[0]);
                     builder.setTitle(R.string.select_genre)
-                            .setItems(item, new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialogInterface, int i) {
-                                        MainActivity.this.iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, item[i]);
-                                    }
-                                }
+                            .setItems(item, (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, item[i])
                             ).show();
                 }
                 btn.setText(getString(isIncome ? R.string.button_income : R.string.button_outgo));
@@ -193,10 +175,8 @@ public class MainActivity extends AppCompatActivity {
         return getResources().getResourceName(v.getId()).split(":id/")[1];
     }
     private void buttonSizeScale(Button btn, float scale){
-        //Log.d("buttonTextSize", String.valueOf(btn.getTextSize()));
         btn.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.buttonTextSize)*scale);
         //getResourcesがpx値を返すので単位変換をする
-        //Log.d("buttonTextSize", String.valueOf(btn.getTextSize()));
     }
 
     /**
@@ -295,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 資金移動ボタン レイアウトを変えるだけ
-     * @param v
+     * @param v view
      */
     public void moveButton(View v){
         Log.d("move", "button pressed");
@@ -308,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 資金移動実行ボタン 書き換え処理はここから
-     * @param v
+     * @param v view
      */
     public void moveDoButton(View v){
         Log.d("moveDo", "button pressed");
@@ -336,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
         cursor.moveToLast();
 
         int readCount = Integer.min(cursor.getCount(), 5);
-        //Log.i("readData", Integer.toString(readCount));
         TextView tv;
 
         for(int i=0; i<readCount; i++){
