@@ -333,9 +333,14 @@ public class MainActivity extends AppCompatActivity {
             tv = findViewById(getResources().getIdentifier("tableWallet"+(i+1), "id", getPackageName()));
             tv.setText(cursor.getString(4));
             tv = findViewById(getResources().getIdentifier("tableMemo"+(i+1), "id", getPackageName()));
-            String strNote = (cursor.getString(5).isEmpty() ? "" : cursor.getString(5) + " : ") + cursor.getString(6);
+            String g = cursor.getString(5);
+            String n = cursor.getString(6);
             //genreない時すぐnote ある時genre : note
-            tv.setText(strNote);
+            if(g.isEmpty() || n.isEmpty()){
+                tv.setText(String.format("%s%s", g, n));
+            }else{
+                tv.setText(String.format("%s : %s", g, n));
+            }
 
             cursor.moveToPrevious();
         }
