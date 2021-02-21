@@ -342,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
         cursor.close();
     }
 
-    private void setTodaySum(){todayOut.setText(Integer.toString(todaySum()));}
+    private void setTodaySum(){todayOut.setText(todaySum());}
 
     /**
      * 今日の支出
