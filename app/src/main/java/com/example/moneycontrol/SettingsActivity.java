@@ -44,39 +44,21 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    public static class SettingsFragment extends PreferenceFragmentCompat implements Preference.OnPreferenceClickListener{
+    public static class SettingsFragment extends PreferenceFragmentCompat{
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
-            findPreference("show_all_button").setOnPreferenceClickListener(this);
+            findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
+                Intent intent = new Intent(getContext(), setting_showall.class);
+                startActivity(intent);
+                return false;
+            });
             findPreference("delete").setOnPreferenceClickListener((preference)->{
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle("建設中").setMessage("少々お待ちください m(_ _)m").show();
                 return false;
             });
             //ここでpreferenceのsetOnClickする
-        }
-
-        @Override
-        public boolean onPreferenceClick(Preference preference) {
-            String key = preference.getKey();
-            Log.d("key is", key);
-            switch(key){
-                //onClickの内容はここで分岐する
-                case "show_all_button" :
-                    Intent intent = new Intent(getContext(), setting_showall.class);
-                    startActivity(intent);
-                break;
-
-                /* //setOnClickListnerに直接記述
-                case "delete" :
-                    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                    builder.setTitle("建設中").setMessage("少々お待ちください m(_ _)m").show();
-                break;
-
-                 */
-            }
-            return false;
         }
     }
 }
