@@ -17,3 +17,4 @@
 local.properties
 app/src
 !app/src/main
+!app/build/outputs/apk/debug
