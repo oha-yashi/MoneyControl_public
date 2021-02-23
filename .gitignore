@@ -15,5 +15,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-app/src/androidTest
-app/src/test
+app/src
+!app/src/main
