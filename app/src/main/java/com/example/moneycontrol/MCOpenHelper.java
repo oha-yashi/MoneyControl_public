@@ -85,14 +85,14 @@ public class MCOpenHelper extends SQLiteOpenHelper {
 
     /**
      * データベースの単一列を抜き出す
-     * @param db データベース
+     * @param database データベース
      * @param table テーブル名
      * @param column 列名
      * @return データのリスト
      */
-    public List<String> tableColumnToArray(SQLiteDatabase db, String table, @NotNull String column){
+    public List<String> tableColumnToArray(SQLiteDatabase database, String table, @NotNull String column){
         List<String> l = new ArrayList<>();
-        Cursor c = db.rawQuery("SELECT " + column + " FROM " + table, null);
+        Cursor c = database.rawQuery("SELECT " + column + " FROM " + table, null);
         c.moveToFirst();
         for(int i=0; i<c.getCount(); i++){
             l.add(c.getString(0));
