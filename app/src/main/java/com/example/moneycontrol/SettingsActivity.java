@@ -22,12 +22,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
-
-    private MCOpenHelper helper;
-    private SQLiteDatabase db;
-
-    FloatingActionButton fab;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

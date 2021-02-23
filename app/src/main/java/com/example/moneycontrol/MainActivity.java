@@ -47,23 +47,26 @@ public class MainActivity extends AppCompatActivity {
     private ImageView I_arrow;
     private Button btn_move; //buttonMove
 
-    private MCOpenHelper helper;
+    //private MCOpenHelper helper;
     private SQLiteDatabase db;
 
     private enum IOM {INCOME, OUTGO, MOVE}
 
     private boolean isMove; //資金移動かどうか
 
+    /*
     public void databaseNullCheck(){
         if(helper==null){
-            Log.d("databaseNullCheck", "helper is Null");
+            Log.d("databaseNullCheck", "helper is null");
             helper = new MCOpenHelper(this);
-        }else Log.d("databaseNullCheck", "helper is not Null");
+        }else Log.d("databaseNullCheck", "helper is NOT null");
         if(db==null){
-            Log.d("databaseNullCheck", "db is Null");
+            Log.d("databaseNullCheck", "db is null");
             db = helper.getWritableDatabase();
-        }else Log.d("databaseNullCheck", "db is not Null");
+        }else Log.d("databaseNullCheck", "db is NOT null");
     }
+
+     */
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -79,7 +82,8 @@ public class MainActivity extends AppCompatActivity {
 
 
         isMove = false;
-        databaseNullCheck();
+        //databaseNullCheck();
+        db = MCOpenHelper.DBnullCheck(this, db);
 
         {
             //thread test
@@ -135,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         btn_out.setOnTouchListener(ioButtonFlick);
 
         //spinnerにwalletを設定する
-        List<String> LS = helper.tableColumnToArray(db, MCOpenHelper.WALLET_TABLE, "name");
+        List<String> LS = MCOpenHelper.tableColumnToArray(db, MCOpenHelper.WALLET_TABLE, "name");
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         setTodaySum();
@@ -176,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("up", "outButton");
                     //genre設定してiomButton
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    List<String> list = helper.tableColumnToArray(
+                    List<String> list = MCOpenHelper.tableColumnToArray(
                             db, isIncome ? MCOpenHelper.INCOME_GENRE_TABLE : MCOpenHelper.OUTGO_GENRE_TABLE,
                             "name");
                     String[] item = list.toArray(new String[0]);
@@ -218,8 +222,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.backGroundLayout).requestFocus();
 
         if(!TextUtils.isEmpty(money)){
-
-            databaseNullCheck();
+            db = MCOpenHelper.DBnullCheck(this,db);
 
             String text_move = getString(R.string.button_move);
             String st_in = getString(R.string.status_income);
@@ -325,11 +328,11 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 直近の項目を削除する
-     * @param v
+     * @param v view
      */
     public void undoButton(View v){
         Log.d("undoButton", "clicked");
-        databaseNullCheck();
+        db = MCOpenHelper.DBnullCheck(this, db);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
         Cursor cursor = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
@@ -344,8 +347,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readData(){
-        databaseNullCheck();
-
+        db = MCOpenHelper.DBnullCheck(this, db);
         Cursor cursor = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
 
         //読み取り
@@ -392,7 +394,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private int todaySum(){
         int sum = 0;
-        databaseNullCheck();
+        db = MCOpenHelper.DBnullCheck(this, db);
 
         String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + MCOpenHelper.TABLE_NAME
                 + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime') and status = '"
@@ -410,5 +412,3 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 }
-
-//hoge

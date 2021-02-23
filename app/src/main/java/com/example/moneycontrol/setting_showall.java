@@ -11,33 +11,18 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 public class setting_showall extends AppCompatActivity {
-
-    private MCOpenHelper helper;
     private SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.show_all_layout);
-
+        db = MCOpenHelper.DBnullCheck(this, db);
         showAll();
+        db.close();
     }
 
     public void showAll(){
-        {
-            if(helper==null){
-                Log.d("databaseNullCheck", "helper is Null");
-                helper = new MCOpenHelper(this);
-            }
-            if(db==null){
-                Log.d("databaseNullCheck", "db is Null");
-                new Thread(() -> {
-                    Log.d("on new thread" ,"running");
-                    db = helper.getWritableDatabase();
-                });
-            }
-        }
-
         TableLayout table = findViewById(R.id.tableALL);
         TextView tv;
 

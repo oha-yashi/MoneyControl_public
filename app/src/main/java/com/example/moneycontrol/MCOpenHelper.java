@@ -3,17 +3,13 @@ package com.example.moneycontrol;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class MCOpenHelper extends SQLiteOpenHelper {
@@ -38,11 +34,11 @@ public class MCOpenHelper extends SQLiteOpenHelper {
     private static final String WT_CREATE = "CREATE TABLE " + WALLET_TABLE + " (_id integer primary key autoincrement, name, balance DEFAULT 0)";
     public static final String[] WALLET_LIST = {"財布", "三井住友", "モバイルSuica", "楽天", "その他"};
 
-    public MCOpenHelper(Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
-
     public static final String TABLE_NAME = "MoneyDatabase";
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
-    public String SQL_DELETE_QUERY = "DELETE FROM " + TABLE_NAME;
+    public static final String SQL_DELETE_QUERY = "DELETE FROM " + TABLE_NAME;
+
+    public MCOpenHelper(Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -90,7 +86,7 @@ public class MCOpenHelper extends SQLiteOpenHelper {
      * @param column 列名
      * @return データのリスト
      */
-    public List<String> tableColumnToArray(SQLiteDatabase database, String table, @NotNull String column){
+    public static List<String> tableColumnToArray(SQLiteDatabase database, String table, @NotNull String column){
         List<String> l = new ArrayList<>();
         Cursor c = database.rawQuery("SELECT " + column + " FROM " + table, null);
         c.moveToFirst();
@@ -100,5 +96,15 @@ public class MCOpenHelper extends SQLiteOpenHelper {
         }
         c.close();
         return l;
+    }
+
+    public static SQLiteDatabase DBnullCheck(Context context, SQLiteDatabase sqLiteDatabase){
+        Log.d("DBnullCheck", "run");
+        if(sqLiteDatabase==null){
+            Log.d("DBnullCheck", "is null");
+            return new MCOpenHelper(context).getWritableDatabase();
+        }else{
+            return sqLiteDatabase;
+        }
     }
 }
