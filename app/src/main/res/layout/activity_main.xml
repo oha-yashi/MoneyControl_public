@@ -31,22 +31,24 @@
         android:layout_marginTop="24dp"
         android:background="@drawable/background_line"
         android:dropDownWidth="wrap_content"
+        android:maxWidth="150dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editMoney" />
+        app:layout_constraintTop_toBottomOf="@id/editMoney" />
 
     <Button
         android:id="@+id/moveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
         android:backgroundTint="#8BC34A"
         android:onClick="moveButton"
         android:text="@string/button_move"
         android:textSize="@dimen/buttonTextSize"
-        app:layout_constraintBaseline_toBaselineOf="@+id/spinner"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toEndOf="@+id/spinner" />
+        app:layout_constraintStart_toEndOf="@+id/spinner"
+        app:layout_constraintTop_toBottomOf="@+id/editMoney"/>
 
     <ImageView
         android:id="@+id/downArrow"
@@ -59,7 +61,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/spinner"
-        app:srcCompat="@drawable/downarrow" />
+        app:srcCompat="@drawable/downarrow"
+        android:contentDescription="arrow_moveingMoneyFromTo" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/memoLayout"
