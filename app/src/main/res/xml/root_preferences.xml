@@ -6,7 +6,9 @@
         app:title="全体表示" />
     <PreferenceCategory app:title="Delete">
 
-        <Preference app:title="テーブル削除" />
+        <Preference
+            android:key="delete"
+            app:title="テーブル削除" />
 
     </PreferenceCategory>
 
