@@ -7,7 +7,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,13 +17,10 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -33,7 +29,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -72,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
         isMove = false;
         helper = new MCOpenHelper(getApplicationContext());
-        if(helper == null)helper = new MCOpenHelper(getApplicationContext());
         if(db == null)db = helper.getWritableDatabase();
 
         L_memo = findViewById(R.id.memoLayout);
@@ -113,8 +107,8 @@ public class MainActivity extends AppCompatActivity {
             imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT,InputMethodManager.HIDE_NOT_ALWAYS);
         });
 
-        btn_in.setOnTouchListener(otl);
-        btn_out.setOnTouchListener(otl);
+        btn_in.setOnTouchListener(ioButtonFlick);
+        btn_out.setOnTouchListener(ioButtonFlick);
 
         //spinnerにwalletを設定する
         List<String> LS = helper.tableColumnToArray(db, MCOpenHelper.WALLET_TABLE, "name");
@@ -128,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
 
     //inoutボタンのフリック設定
     @SuppressLint("ClickableViewAccessibility")
-    private final View.OnTouchListener otl = (view, motionEvent) -> {
+    private final View.OnTouchListener ioButtonFlick = (view, motionEvent) -> {
         Button btn = (Button) view;
         float gX = motionEvent.getX();
         float gY = motionEvent.getY();
@@ -141,9 +135,9 @@ public class MainActivity extends AppCompatActivity {
         switch (action) {
             case MotionEvent.ACTION_MOVE:
                 if (isInButton /* && view instanceof Button */) {
-                    btn.setText(getString(isIncome ? R.string.button_income : R.string.button_outgo));
+                    btn.setText(isIncome ? R.string.button_income : R.string.button_outgo);
                 } else {
-                    btn.setText(getString(R.string.select_genre));
+                    btn.setText(R.string.select_genre);
                 }
                 break;
             case MotionEvent.ACTION_DOWN:
@@ -166,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                             .setItems(item, (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, item[i])
                             ).show();
                 }
-                btn.setText(getString(isIncome ? R.string.button_income : R.string.button_outgo));
+                btn.setText(isIncome ? R.string.button_income : R.string.button_outgo);
                 break;
         }
         return false;
