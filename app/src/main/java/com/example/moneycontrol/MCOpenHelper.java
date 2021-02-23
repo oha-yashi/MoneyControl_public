@@ -27,21 +27,21 @@ public class MCOpenHelper extends SQLiteOpenHelper {
     };
 
     public static final String INCOME_GENRE_TABLE = "IncomeGenre";
-    private static final String IG_CREATE = "create table " + INCOME_GENRE_TABLE + " (_id integer primary key autoincrement, name)";
+    private static final String IG_CREATE = "CREATE TABLE " + INCOME_GENRE_TABLE + " (_id integer primary key autoincrement, name)";
     public static final String[] IG_LIST = {"収入", "残高", "その他"};
 
     public static final String OUTGO_GENRE_TABLE = "OutgoGenre";
-    private static final String OG_CREATE = "create table " + OUTGO_GENRE_TABLE + " (_id integer primary key autoincrement, name)";
+    private static final String OG_CREATE = "CREATE TABLE " + OUTGO_GENRE_TABLE + " (_id integer primary key autoincrement, name)";
     public static final String[] OG_LIST = {"食費", "生活費", "娯楽", "交通費", "貯金", "その他"};
 
     public static final String WALLET_TABLE = "Wallet";
-    private static final String WT_CREATE = "create table " + WALLET_TABLE + " (_id integer primary key autoincrement, name, balance DEFAULT 0)";
+    private static final String WT_CREATE = "CREATE TABLE " + WALLET_TABLE + " (_id integer primary key autoincrement, name, balance DEFAULT 0)";
     public static final String[] WALLET_LIST = {"財布", "三井住友", "モバイルSuica", "楽天", "その他"};
 
     public MCOpenHelper(Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
-    public String TABLE_NAME = "MoneyDatabase";
-    public String READ_ALL_QUERY = "select * from " + TABLE_NAME;
+    public static final String TABLE_NAME = "MoneyDatabase";
+    public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
     public String SQL_DELETE_QUERY = "DELETE FROM " + TABLE_NAME;
 
     @Override

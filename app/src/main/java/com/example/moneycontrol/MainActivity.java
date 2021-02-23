@@ -32,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Locale;
 
+import static android.os.SystemClock.sleep;
+
 public class MainActivity extends AppCompatActivity {
 
     private EditText editMoney;
@@ -52,6 +54,17 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isMove; //資金移動かどうか
 
+    public void databaseNullCheck(){
+        if(helper==null){
+            Log.d("databaseNullCheck", "helper is Null");
+            helper = new MCOpenHelper(this);
+        }else Log.d("databaseNullCheck", "helper is not Null");
+        if(db==null){
+            Log.d("databaseNullCheck", "db is Null");
+            db = helper.getWritableDatabase();
+        }else Log.d("databaseNullCheck", "db is not Null");
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,8 +79,19 @@ public class MainActivity extends AppCompatActivity {
 
 
         isMove = false;
-        helper = new MCOpenHelper(getApplicationContext());
-        if(db == null)db = helper.getWritableDatabase();
+        databaseNullCheck();
+
+        {
+            //thread test
+            Log.d("thread", "before");
+            new Thread(() -> {
+                Log.d("new thread", "run");
+                sleep(1000);
+                Log.d("new thread", "end");
+            }).start();
+            Log.d("thread", "after");
+        }
+
 
         L_memo = findViewById(R.id.memoLayout);
         L_move = findViewById(R.id.moveLayout);
@@ -195,8 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(!TextUtils.isEmpty(money)){
 
-            if(helper == null)helper = new MCOpenHelper(getApplicationContext());
-            if(db == null)db = helper.getWritableDatabase();
+            databaseNullCheck();
 
             String text_move = getString(R.string.button_move);
             String st_in = getString(R.string.status_income);
@@ -219,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
                     : genre.isEmpty() ? "" : genre);
             cv.put("note", iom==IOM.MOVE ? "to "+wallet2 : note);
             //ジャンルはnullで始めてあとからボタン押下時選択項目出るよう実装
-            long id = db.insert(helper.TABLE_NAME, null, cv);
+            long id = db.insert(MCOpenHelper.TABLE_NAME, null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
@@ -230,7 +253,7 @@ public class MainActivity extends AppCompatActivity {
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
                 cv.put("note", "from "+wallet);
-                db.insert(helper.TABLE_NAME, null, cv);
+                db.insert(MCOpenHelper.TABLE_NAME, null, cv);
                 Log.d("iomButton", cv.toString());
             }
         }
@@ -300,11 +323,30 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void readData(){
-        if(helper == null) helper = new MCOpenHelper(getApplicationContext());
-        if(db == null) db = helper.getReadableDatabase();
+    /**
+     * 直近の項目を削除する
+     * @param v
+     */
+    public void undoButton(View v){
+        Log.d("undoButton", "clicked");
+        databaseNullCheck();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        StringBuilder lastItem = new StringBuilder("|");
+        Cursor cursor = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
+        cursor.moveToLast();
+        for(int i=1; i<=6; i++){
+            lastItem.append(cursor.getString(i)).append("|");
+        }
+        cursor.close();
+        builder.setTitle("直近項目削除")
+                .setMessage(lastItem.toString());
+        builder.show();
+    }
 
-        Cursor cursor = db.rawQuery(helper.READ_ALL_QUERY, null);
+    private void readData(){
+        databaseNullCheck();
+
+        Cursor cursor = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
 
         //読み取り
 
@@ -350,10 +392,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private int todaySum(){
         int sum = 0;
-        if(helper == null) helper = new MCOpenHelper(getApplicationContext());
-        if(db == null) db = helper.getReadableDatabase();
+        databaseNullCheck();
 
-        String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + helper.TABLE_NAME
+        String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + MCOpenHelper.TABLE_NAME
                 + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime') and status = '"
                 + getString(R.string.status_outgo) + "'";
         Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
