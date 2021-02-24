@@ -2,7 +2,7 @@
 
 ## apk
 
-[ここ](https://github.com/oha-yashi/MoneyControl_public/tree/master/app/build/outputs/apk/debug)
+[ここ!](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/build/outputs/apk/debug/app-debug.apk)
 
 ## ソースコード
 
