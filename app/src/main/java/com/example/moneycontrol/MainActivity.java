@@ -7,6 +7,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -335,29 +336,37 @@ public class MainActivity extends AppCompatActivity {
         db = MCOpenHelper.DBnullCheck(this, db);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
-        Cursor cursor = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
-        cursor.moveToLast();
+        Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 1", null);
+        cursor.moveToFirst();
+        int id = cursor.getInt(0);
         for(int i=1; i<=6; i++){
             lastItem.append(cursor.getString(i)).append("|");
         }
         cursor.close();
         builder.setTitle("直近項目削除")
-                .setMessage(lastItem.toString());
+                .setMessage(lastItem.toString())
+                .setPositiveButton("削除", (dialogInterface, i) -> {
+                    db.execSQL("DELETE FROM "+MCOpenHelper.TABLE_NAME+" WHERE _id="+id);
+                    readData();
+                    setTodaySum();
+                })
+                .setNeutralButton("キャンセル", (dialogInterface, i) -> {
+                    //nothing
+                });
         builder.show();
     }
 
     private void readData(){
         db = MCOpenHelper.DBnullCheck(this, db);
-        Cursor cursor = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 5", null);
 
         //読み取り
 
-        cursor.moveToLast();
+        cursor.moveToFirst();
 
-        int readCount = Integer.min(cursor.getCount(), 5);
         TextView tv;
 
-        for(int i=0; i<readCount; i++){
+        for(int i=0; i<cursor.getCount(); i++){
             //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
 
             String idDate = "tableDate" + (i+1); //Integer.toStringは不要
@@ -381,7 +390,7 @@ public class MainActivity extends AppCompatActivity {
                 tv.setText(String.format("%s : %s", g, n));
             }
 
-            cursor.moveToPrevious();
+            cursor.moveToNext();
         }
         cursor.close();
     }
