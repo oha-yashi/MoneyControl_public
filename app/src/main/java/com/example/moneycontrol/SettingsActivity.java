@@ -5,21 +5,12 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.TableLayout;
-import android.widget.TableRow;
-import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.DialogFragment;
-import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
-import java.util.Objects;
 
 public class SettingsActivity extends AppCompatActivity {
     @Override
@@ -42,6 +33,7 @@ public class SettingsActivity extends AppCompatActivity {
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
+
             findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
                 Intent intent = new Intent(getContext(), setting_showall.class);
                 startActivity(intent);
@@ -52,7 +44,36 @@ public class SettingsActivity extends AppCompatActivity {
                 builder.setTitle("建設中").setMessage("少々お待ちください m(_ _)m").show();
                 return false;
             });
-            //ここでpreferenceのsetOnClickする
+            findPreference("csvExport").setOnPreferenceClickListener(preference -> {
+                // https://developer.android.com/training/sharing/send?hl=ja
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+
+                StringBuilder csv = new StringBuilder();
+                SQLiteDatabase db = MCOpenHelper.databaseNullCheck(getActivity(), null);//getActivityでfragmentの所属するActivityが返るので実質this
+                Cursor cursor = db.rawQuery("SELECT * FROM "+MCOpenHelper.TABLE_NAME, null);
+                csv.append(String.join(",", cursor.getColumnNames())).append("\n");
+                cursor.moveToFirst();
+                int columns = cursor.getColumnCount();
+                for(int i=0; i<cursor.getCount(); i++){
+                    for(int j=0; j<columns; j++){
+                        csv.append(cursor.getString(j));
+                        csv.append(",");
+                    }
+                    csv.deleteCharAt(csv.length()-1);
+                    csv.append("\n");
+                    cursor.moveToNext();
+                }
+                cursor.close();
+
+                sendIntent.putExtra(Intent.EXTRA_TEXT, csv.toString());
+                sendIntent.setType("text/plain");
+
+                Intent shareIntent = Intent.createChooser(sendIntent, null);
+                startActivity(shareIntent);
+
+                return false;
+            });
         }
     }
 }

@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -17,7 +16,7 @@ public class setting_showall extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.show_all_layout);
-        db = MCOpenHelper.DBnullCheck(this, db);
+        db = MCOpenHelper.databaseNullCheck(this, db);
         showAll();
         db.close();
     }
@@ -48,6 +47,5 @@ public class setting_showall extends AppCompatActivity {
             c.moveToNext();
         }
         c.close();
-
     }
 }

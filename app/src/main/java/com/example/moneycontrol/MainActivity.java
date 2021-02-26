@@ -7,7 +7,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -55,20 +54,6 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isMove; //資金移動かどうか
 
-    /*
-    public void databaseNullCheck(){
-        if(helper==null){
-            Log.d("databaseNullCheck", "helper is null");
-            helper = new MCOpenHelper(this);
-        }else Log.d("databaseNullCheck", "helper is NOT null");
-        if(db==null){
-            Log.d("databaseNullCheck", "db is null");
-            db = helper.getWritableDatabase();
-        }else Log.d("databaseNullCheck", "db is NOT null");
-    }
-
-     */
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
 
         isMove = false;
         //databaseNullCheck();
-        db = MCOpenHelper.DBnullCheck(this, db);
+        db = MCOpenHelper.databaseNullCheck(this, db);
 
         {
             //thread test
@@ -223,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.backGroundLayout).requestFocus();
 
         if(!TextUtils.isEmpty(money)){
-            db = MCOpenHelper.DBnullCheck(this,db);
+            db = MCOpenHelper.databaseNullCheck(this,db);
 
             String text_move = getString(R.string.button_move);
             String st_in = getString(R.string.status_income);
@@ -333,7 +318,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void undoButton(View v){
         Log.d("undoButton", "clicked");
-        db = MCOpenHelper.DBnullCheck(this, db);
+        db = MCOpenHelper.databaseNullCheck(this, db);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
         Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 1", null);
@@ -357,7 +342,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readData(){
-        db = MCOpenHelper.DBnullCheck(this, db);
+        db = MCOpenHelper.databaseNullCheck(this, db);
         Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 5", null);
 
         //読み取り
@@ -403,7 +388,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private int todaySum(){
         int sum = 0;
-        db = MCOpenHelper.DBnullCheck(this, db);
+        db = MCOpenHelper.databaseNullCheck(this, db);
 
         String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + MCOpenHelper.TABLE_NAME
                 + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime') and status = '"

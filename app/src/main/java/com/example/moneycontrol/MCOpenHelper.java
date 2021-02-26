@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,10 +99,17 @@ public class MCOpenHelper extends SQLiteOpenHelper {
         return l;
     }
 
-    public static SQLiteDatabase DBnullCheck(Context context, SQLiteDatabase sqLiteDatabase){
-        Log.d("DBnullCheck", "run");
+    /**
+     * 引数のデータベースがnullのとき新しく作って返す。
+     * nullを渡して初期化にも使える
+     * @param context e.g.(this
+     * @param sqLiteDatabase database
+     * @return sqLiteDatabase_writable
+     */
+    public static SQLiteDatabase databaseNullCheck(Context context, @Nullable SQLiteDatabase sqLiteDatabase){
+        Log.d("DBNullCheck", "run");
         if(sqLiteDatabase==null){
-            Log.d("DBnullCheck", "is null");
+            Log.d("DBNullCheck", "is null");
             return new MCOpenHelper(context).getWritableDatabase();
         }else{
             return sqLiteDatabase;
