@@ -16,4 +16,18 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="その他">
+        <Preference
+            android:title="バージョン"
+            android:summary="@string/versionName"/>
+        <Preference
+            android:key="goToGitHub"
+            android:title="GitHub"
+            android:summary="このアプリのリポジトリを開きます">
+            <intent
+                android:action="android.intent.action.VIEW"
+                android:data="https://github.com/oha-yashi/MoneyControl_public"/>
+        </Preference>
+    </PreferenceCategory>
+
 </PreferenceScreen>
