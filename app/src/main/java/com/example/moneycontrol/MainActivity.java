@@ -1,9 +1,5 @@
 package com.example.moneycontrol;
 
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,7 +9,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
-import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -24,15 +19,17 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Locale;
 
-import static android.os.SystemClock.sleep;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,8 +44,9 @@ public class MainActivity extends AppCompatActivity {
     private ImageView I_arrow;
     private Button btn_move; //buttonMove
 
-    //private MCOpenHelper helper;
+    //private MoneyTableOpenHelper helper;
     private SQLiteDatabase db;
+    private SQLiteDatabase db_setting;
 
     private enum IOM {INCOME, OUTGO, MOVE}
 
@@ -69,19 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
         isMove = false;
         //databaseNullCheck();
-        db = MCOpenHelper.databaseNullCheck(this, db);
-
-        {
-            //thread test
-            Log.d("thread", "before");
-            new Thread(() -> {
-                Log.d("new thread", "run");
-                sleep(1000);
-                Log.d("new thread", "end");
-            }).start();
-            Log.d("thread", "after");
-        }
-
+        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
+        db_setting = MoneySettingOpenHelper.databaseNullCheck(this, db_setting);
 
         L_memo = findViewById(R.id.memoLayout);
         L_move = findViewById(R.id.moveLayout);
@@ -125,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
         btn_out.setOnTouchListener(ioButtonFlick);
 
         //spinnerにwalletを設定する
-        List<String> LS = MCOpenHelper.tableColumnToArray(db, MCOpenHelper.WALLET_TABLE, "name");
+        String[] LS = MoneySettingOpenHelper.getList(this, MoneySettingOpenHelper.WALLET);
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         setTodaySum();
@@ -166,10 +153,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("up", "outButton");
                     //genre設定してiomButton
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    List<String> list = MCOpenHelper.tableColumnToArray(
-                            db, isIncome ? MCOpenHelper.INCOME_GENRE_TABLE : MCOpenHelper.OUTGO_GENRE_TABLE,
-                            "name");
-                    String[] item = list.toArray(new String[0]);
+                    String[] item = MoneySettingOpenHelper.getList(this, isIncome?0:1);
                     builder.setTitle(R.string.select_genre)
                             .setItems(item, (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, item[i])
                             ).show();
@@ -182,10 +166,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String getIdName(@NotNull View v){
         return getResources().getResourceName(v.getId()).split(":id/")[1];
-    }
-    private void buttonSizeScale(Button btn, float scale){
-        btn.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimension(R.dimen.buttonTextSize)*scale);
-        //getResourcesがpx値を返すので単位変換をする
     }
 
     /**
@@ -208,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.backGroundLayout).requestFocus();
 
         if(!TextUtils.isEmpty(money)){
-            db = MCOpenHelper.databaseNullCheck(this,db);
+            db = MoneyTableOpenHelper.databaseNullCheck(this,db);
 
             String text_move = getString(R.string.button_move);
             String st_in = getString(R.string.status_income);
@@ -231,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     : genre.isEmpty() ? "" : genre);
             cv.put("note", iom==IOM.MOVE ? "to "+wallet2 : note);
             //ジャンルはnullで始めてあとからボタン押下時選択項目出るよう実装
-            long id = db.insert(MCOpenHelper.TABLE_NAME, null, cv);
+            long id = db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
@@ -242,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
                 cv.put("note", "from "+wallet);
-                db.insert(MCOpenHelper.TABLE_NAME, null, cv);
+                db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
                 Log.d("iomButton", cv.toString());
             }
         }
@@ -318,7 +298,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void undoButton(View v){
         Log.d("undoButton", "clicked");
-        db = MCOpenHelper.databaseNullCheck(this, db);
+        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
         Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 1", null);
@@ -331,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("直近項目削除")
                 .setMessage(lastItem.toString())
                 .setPositiveButton("削除", (dialogInterface, i) -> {
-                    db.execSQL("DELETE FROM "+MCOpenHelper.TABLE_NAME+" WHERE _id="+id);
+                    db.execSQL("DELETE FROM "+ MoneyTableOpenHelper.TABLE_NAME+" WHERE _id="+id);
                     readData();
                     setTodaySum();
                 })
@@ -342,7 +322,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void readData(){
-        db = MCOpenHelper.databaseNullCheck(this, db);
+        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
         Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 5", null);
 
         //読み取り
@@ -388,9 +368,9 @@ public class MainActivity extends AppCompatActivity {
      */
     private int todaySum(){
         int sum = 0;
-        db = MCOpenHelper.databaseNullCheck(this, db);
+        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
 
-        String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + MCOpenHelper.TABLE_NAME
+        String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + MoneyTableOpenHelper.TABLE_NAME
                 + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime') and status = '"
                 + getString(R.string.status_outgo) + "'";
         Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);

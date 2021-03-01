@@ -16,7 +16,7 @@ public class setting_showall extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.show_all_layout);
-        db = MCOpenHelper.databaseNullCheck(this, db);
+        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
         showAll();
         db.close();
     }
@@ -25,7 +25,7 @@ public class setting_showall extends AppCompatActivity {
         TableLayout table = findViewById(R.id.tableALL);
         TextView tv;
 
-        Cursor c = db.rawQuery(MCOpenHelper.READ_ALL_QUERY, null);
+        Cursor c = db.rawQuery(MoneyTableOpenHelper.READ_ALL_QUERY, null);
         c.moveToFirst();
 
         for(int i=0; i<c.getCount(); i++){

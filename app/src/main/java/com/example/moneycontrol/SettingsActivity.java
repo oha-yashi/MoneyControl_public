@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -49,8 +48,8 @@ public class SettingsActivity extends AppCompatActivity {
                 sendIntent.setAction(Intent.ACTION_SEND);
 
                 StringBuilder csv = new StringBuilder();
-                SQLiteDatabase db = MCOpenHelper.databaseNullCheck(getActivity(), null);//getActivityでfragmentの所属するActivityが返るので実質this
-                Cursor cursor = db.rawQuery("SELECT * FROM "+MCOpenHelper.TABLE_NAME, null);
+                SQLiteDatabase db = MoneyTableOpenHelper.databaseNullCheck(getActivity(), null);//getActivityでfragmentの所属するActivityが返るので実質this
+                Cursor cursor = db.rawQuery("SELECT * FROM "+ MoneyTableOpenHelper.TABLE_NAME, null);
                 csv.append(String.join(",", cursor.getColumnNames())).append("\n");
                 cursor.moveToFirst();
                 int columns = cursor.getColumnCount();
