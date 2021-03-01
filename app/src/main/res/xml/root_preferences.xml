@@ -6,7 +6,8 @@
         app:title="全体表示" />
     <Preference
         android:key="csvExport"
-        app:title="csv書き出し"/>
+        app:title="csv書き出し"
+        app:summary="テキストを共有するのでclipboard経由で貼り付けるなどしてください"/>
     <PreferenceCategory app:title="Delete">
 
         <Preference

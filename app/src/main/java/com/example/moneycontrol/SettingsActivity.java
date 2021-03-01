@@ -35,8 +35,7 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
             findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
-                Intent intent = new Intent(getContext(), setting_showall.class);
-                startActivity(intent);
+                startActivity(new Intent(getContext(), setting_showall.class));
                 return false;
             });
             findPreference("delete").setOnPreferenceClickListener((preference)->{
