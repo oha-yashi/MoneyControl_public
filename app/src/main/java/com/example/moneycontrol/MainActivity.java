@@ -45,8 +45,8 @@ public class MainActivity extends AppCompatActivity {
     private Button btn_move; //buttonMove
 
     //private MoneyTableOpenHelper helper;
-    private SQLiteDatabase db;
-    private SQLiteDatabase db_setting;
+    //private SQLiteDatabase db;
+    //private SQLiteDatabase db_setting;
 
     private enum IOM {INCOME, OUTGO, MOVE}
 
@@ -64,11 +64,9 @@ public class MainActivity extends AppCompatActivity {
         spnWallet = findViewById(R.id.spinner);
         spnWallet2 = findViewById(R.id.spinner2);
 
-
         isMove = false;
-        //databaseNullCheck();
-        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
-        db_setting = MoneySettingOpenHelper.databaseNullCheck(this, db_setting);
+        SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
+        SQLiteDatabase db_setting = MoneySettingOpenHelper.databaseNullCheck(this, null);
 
         L_memo = findViewById(R.id.memoLayout);
         L_move = findViewById(R.id.moveLayout);
@@ -111,15 +109,26 @@ public class MainActivity extends AppCompatActivity {
         btn_in.setOnTouchListener(ioButtonFlick);
         btn_out.setOnTouchListener(ioButtonFlick);
 
+        //別スレッドにしたい
         //spinnerにwalletを設定する
         String[] LS = MoneySettingOpenHelper.getList(this, MoneySettingOpenHelper.WALLET);
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         setTodaySum();
         readData();
+        db.close();
+        db_setting.close();
     }
     //End of OnCreate
 
+/*
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        setTodaySum();
+        readData();
+    }
+ */
 
     //inoutボタンのフリック設定
     @SuppressLint("ClickableViewAccessibility")
@@ -188,45 +197,49 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.backGroundLayout).requestFocus();
 
         if(!TextUtils.isEmpty(money)){
-            db = MoneyTableOpenHelper.databaseNullCheck(this,db);
+            SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
+            int intMoney = Integer.parseInt(money);
 
             String text_move = getString(R.string.button_move);
-            String st_in = getString(R.string.status_income);
-            String st_out = getString(R.string.status_outgo);
 
-            String status = iom == IOM.INCOME ? st_in
-                    : iom == IOM.OUTGO ? st_out
-                    : /*iom==IOM.MOVE*/ "";
             String wallet = (String) spnWallet.getSelectedItem();
             String wallet2 = (String) spnWallet2.getSelectedItem();
             String note = editMemo.getText().toString();
 
             //収入支出 資金移動from側の書き込み
-
             ContentValues cv = new ContentValues();
-            cv.put("status", status);
-            cv.put("money", (iom == IOM.INCOME ? "" : "-") + money);//支出と資金移動のfrom項目ではマイナスにする
+            if(iom==IOM.INCOME)cv.put("income", money);
+            if(iom==IOM.OUTGO)cv.put("outgo", money);
+            //MOVEはinout欄には書かない
+
+            int balance = MoneyTableOpenHelper.getBalanceOf(this, wallet);
+            if(iom==IOM.INCOME){
+                cv.put("balance", balance + intMoney);
+            }else{
+                cv.put("balance", balance - intMoney);
+            }
+
             cv.put("wallet", wallet);
-            cv.put("genre", iom==IOM.MOVE ? text_move
-                    : genre.isEmpty() ? "" : genre);
-            cv.put("note", iom==IOM.MOVE ? "to "+wallet2 : note);
-            //ジャンルはnullで始めてあとからボタン押下時選択項目出るよう実装
-            long id = db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
+            cv.put("genre", iom==IOM.MOVE ? text_move : genre.isEmpty() ? "" : genre);
+            cv.put("note", iom==IOM.MOVE ? "-"+money : note);
+            db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
             if(iom == IOM.MOVE){
                 cv.clear();
-                cv.put("status", status);
-                cv.put("money", money);
+
+                balance = MoneyTableOpenHelper.getBalanceOf(this, wallet);
+                cv.put("balance", balance+"+"+money);
+
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
-                cv.put("note", "from "+wallet);
+                cv.put("note", "+"+money);
                 db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
                 Log.d("iomButton", cv.toString());
             }
+            db.close();
         }
-
         readData();
         setTodaySum();
         editMoney.setText("");
@@ -298,11 +311,21 @@ public class MainActivity extends AppCompatActivity {
      */
     public void undoButton(View v){
         Log.d("undoButton", "clicked");
-        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
+        SQLiteDatabase sqLiteDatabase = MoneyTableOpenHelper.newDatabase(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
-        Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 1", null);
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 1", null);
         cursor.moveToFirst();
+        //削除するものが無い
+        if(cursor.getCount()==0){
+            sqLiteDatabase.close();
+            Log.d("undoButton", "nothing to delete");
+            builder.setTitle("直近項目削除")
+                    .setMessage("削除できる項目がありません")
+                    .setPositiveButton("OK",null)
+                    .show();
+            return;
+        }
         int id = cursor.getInt(0);
         for(int i=1; i<=6; i++){
             lastItem.append(cursor.getString(i)).append("|");
@@ -311,7 +334,10 @@ public class MainActivity extends AppCompatActivity {
         builder.setTitle("直近項目削除")
                 .setMessage(lastItem.toString())
                 .setPositiveButton("削除", (dialogInterface, i) -> {
-                    db.execSQL("DELETE FROM "+ MoneyTableOpenHelper.TABLE_NAME+" WHERE _id="+id);
+                    Log.d("delete", ""+id+" delete");
+                    final SQLiteDatabase sqlDB = MoneyTableOpenHelper.newDatabase(this);
+                    sqlDB.execSQL("DELETE FROM "+ MoneyTableOpenHelper.TABLE_NAME+" WHERE _id="+id);
+                    sqlDB.close();
                     readData();
                     setTodaySum();
                 })
@@ -319,33 +345,36 @@ public class MainActivity extends AppCompatActivity {
                     //nothing
                 });
         builder.show();
+        sqLiteDatabase.close();
     }
 
+    /**
+     * 最新最大5件の読み取り
+     */
     private void readData(){
-        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
-        Cursor cursor = db.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 5", null);
+        SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
+        Cursor cursor = MoneyTableOpenHelper.getNewData(db, 5);
 
         //読み取り
-
         cursor.moveToFirst();
-
         TextView tv;
 
         for(int i=0; i<cursor.getCount(); i++){
             //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
 
-            String idDate = "tableDate" + (i+1); //Integer.toStringは不要
+            /*
+            String idDate = "tableDate" + (i); //Integer.toStringは不要
             tv = findViewById(getResources().getIdentifier(idDate, "id", getPackageName()));
             tv.setText(cursor.getString(1).substring(5, 16));
             //idDateの文字列でidを検索してfindViewByIdに送る
             //そのidで取得したviewに対応する値を入れる
-            tv = findViewById(getResources().getIdentifier("tableStatus" + (i+1), "id", getPackageName()));
+            tv = findViewById(getResources().getIdentifier("tableStatus" + (i), "id", getPackageName()));
             tv.setText(cursor.getString(2));
-            tv = findViewById(getResources().getIdentifier("tableMoney"+(i+1), "id", getPackageName()));
+            tv = findViewById(getResources().getIdentifier("tableMoney"+(i), "id", getPackageName()));
             tv.setText(cursor.getString(3));
-            tv = findViewById(getResources().getIdentifier("tableWallet"+(i+1), "id", getPackageName()));
+            tv = findViewById(getResources().getIdentifier("tableWallet"+(i), "id", getPackageName()));
             tv.setText(cursor.getString(4));
-            tv = findViewById(getResources().getIdentifier("tableMemo"+(i+1), "id", getPackageName()));
+            tv = findViewById(getResources().getIdentifier("tableMemo"+(i), "id", getPackageName()));
             String g = cursor.getString(5);
             String n = cursor.getString(6);
             //genreない時すぐnote ある時genre : note
@@ -354,10 +383,53 @@ public class MainActivity extends AppCompatActivity {
             }else{
                 tv.setText(String.format("%s : %s", g, n));
             }
+            */
+
+            String timestamp = cursor.getString(1).substring(5, 16);
+            String status = cursor.getInt(2)>0 ? getString(R.string.status_income) : getString(R.string.status_outgo) ;
+            String money = cursor.getInt(2)>0 ? cursor.getString(2): cursor.getString(3);
+            String wallet = cursor.getString(5);
+            String note;
+            String g = cursor.getString(6);
+            String n = cursor.getString(7);
+            if(g.isEmpty() || n.isEmpty()){
+                note = String.format("%s%s", g, n);
+            }else{
+                note = String.format("%s : %s", g, n);
+            }
+
+            setHistoryTable(i, new String[]{timestamp, status, money, wallet, note});
 
             cursor.moveToNext();
         }
         cursor.close();
+        db.close();
+    }
+
+    /**
+     * メイン画面の履歴表示に書き込む
+     * @param i 上からの列数 0-index
+     * @param items String[] {timestamp, status, money, wallet, note(genre+memo)}
+     */
+    private void setHistoryTable(int i, @Nullable String[] items){
+        String noneTime = getString(R.string.table_none_time);
+        String none = getString(R.string.table_none);
+        TextView tv;
+
+        if(items.length==5){
+            tv = findViewById(getResources().getIdentifier("tableDate"+i, "id", getPackageName()));
+            tv.setText(items[0]);
+            tv = findViewById(getResources().getIdentifier("tableStatus"+i, "id", getPackageName()));
+            tv.setText(items[1]);
+            tv = findViewById(getResources().getIdentifier("tableMoney"+i, "id", getPackageName()));
+            tv.setText(items[2]);
+            tv = findViewById(getResources().getIdentifier("tableWallet"+i, "id", getPackageName()));
+            tv.setText(items[3]);
+            tv = findViewById(getResources().getIdentifier("tableMemo"+i, "id", getPackageName()));
+            tv.setText(items[4]);
+        }else{
+            setHistoryTable(i, new String[] {noneTime, none, none, none, none});
+        }
     }
 
     private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", todaySum()));}
@@ -368,16 +440,16 @@ public class MainActivity extends AppCompatActivity {
      */
     private int todaySum(){
         int sum = 0;
-        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
+        SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
 
-        String SEARCH_TODAYSUM_QUERY = "select total(-money) from " + MoneyTableOpenHelper.TABLE_NAME
-                + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime') and status = '"
-                + getString(R.string.status_outgo) + "'";
+        String SEARCH_TODAYSUM_QUERY = "select total(outgo) from " + MoneyTableOpenHelper.TABLE_NAME
+                + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
         Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
         c.moveToFirst();
         for(int i=0; i<c.getCount(); i++)sum += c.getInt(0);
         c.close();
 
+        db.close();
         return sum;
     }
 

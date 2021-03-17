@@ -15,20 +15,26 @@ import java.util.List;
 public class MoneySettingOpenHelper extends SQLiteOpenHelper {
     private static final String TAG = "MSOH";
 
+    private static final int DATABASE_VERSION = 3 ;
     private static final String DATABASE_NAME = "MS.db";
 
     public static final int INCOME = 0, OUTGO = 1, WALLET = 2;
-    public static final String[] TABLE_NAME = {"IncomeGenre", "OutgoGenre", "Wallet"};
+    public static final String[] TABLE_NAME;
+    //ここ1行にしたいけどなんかエラー出る
+    static {
+        TABLE_NAME = new String[]{"IncomeGenre", "OutgoGenre", "Wallet"};
+    }
+
     public static final String[][] DEFAULT_LIST = {
-            {"収入", "残高", "その他"},
+            {"給料", "残高", "その他"},
             {"食費", "生活費", "娯楽", "交通費", "貯金", "その他"},
-            {"財布", "三井住友", "モバイルSuica", "楽天", "その他"}
+            {"財布", "三井住友", "モバイルSuica", "楽天", "ゆうちょ", "その他"}
     };
     String createQuery(int item){
         return "CREATE TABLE "+ TABLE_NAME[item] +" (_id integer primary key autoincrement, name)";
     }
 
-    public MoneySettingOpenHelper(@Nullable Context context) { super(context, DATABASE_NAME, null, 1); }
+    public MoneySettingOpenHelper(@Nullable Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
@@ -48,7 +54,10 @@ public class MoneySettingOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-
+        for(int j=INCOME; j<=WALLET; j++) {
+            sqLiteDatabase.execSQL("DROP TABLE " + TABLE_NAME[j]);
+        }
+        onCreate(sqLiteDatabase);
     }
 
     public static SQLiteDatabase databaseNullCheck(Context context, @org.jetbrains.annotations.Nullable SQLiteDatabase sqLiteDatabase){
@@ -60,6 +69,12 @@ public class MoneySettingOpenHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     *
+     * @param context this
+     * @param item INCOME = 0, OUTGO = 1, WALLET = 2;
+     * @return
+     */
     public static String[] getList(Context context, int item){
         List<String> list = new ArrayList<>();
         String table = TABLE_NAME[item];

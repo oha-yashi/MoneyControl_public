@@ -5,6 +5,9 @@
         android:key="show_all_button"
         app:title="全体表示" />
     <Preference
+        android:key="show_balance"
+        app:title="残額表示" />
+    <Preference
         android:key="csvExport"
         app:title="csv書き出し"
         app:summary="テキストを共有するのでclipboard経由で貼り付けるなどしてください"/>

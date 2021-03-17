@@ -16,7 +16,7 @@ public class setting_showall extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.show_all_layout);
-        db = MoneyTableOpenHelper.databaseNullCheck(this, db);
+        db = MoneyTableOpenHelper.newDatabase(this);
         showAll();
         db.close();
     }

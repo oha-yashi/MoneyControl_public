@@ -271,6 +271,51 @@
                 android:layout_height="match_parent">
 
                 <TextView
+                    android:id="@+id/tableDate0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:padding="3dp"
+                    android:text="@string/table_none_time" />
+
+                <TextView
+                    android:id="@+id/tableStatus0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:padding="3dp"
+                    android:text="@string/table_none" />
+
+                <TextView
+                    android:id="@+id/tableMoney0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:padding="3dp"
+                    android:text="@string/table_none" />
+
+                <TextView
+                    android:id="@+id/tableWallet0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:padding="3dp"
+                    android:text="@string/table_none" />
+
+                <TextView
+                    android:id="@+id/tableMemo0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:padding="3dp"
+                    android:text="@string/table_none" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
                     android:id="@+id/tableDate1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -439,51 +484,6 @@
 
                 <TextView
                     android:id="@+id/tableMemo4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="start"
-                    android:padding="3dp"
-                    android:text="@string/table_none" />
-            </TableRow>
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <TextView
-                    android:id="@+id/tableDate5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:padding="3dp"
-                    android:text="@string/table_none_time" />
-
-                <TextView
-                    android:id="@+id/tableStatus5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:padding="3dp"
-                    android:text="@string/table_none" />
-
-                <TextView
-                    android:id="@+id/tableMoney5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:padding="3dp"
-                    android:text="@string/table_none" />
-
-                <TextView
-                    android:id="@+id/tableWallet5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:padding="3dp"
-                    android:text="@string/table_none" />
-
-                <TextView
-                    android:id="@+id/tableMemo5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="start"
