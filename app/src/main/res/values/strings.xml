@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MoneyControl</string>
+    <string name="app_name">かけいぼあぷり</string>
     <string name="edit_money">金額</string>
     <string name="button_income">収入</string>
     <string name="button_outgo">支出</string>
