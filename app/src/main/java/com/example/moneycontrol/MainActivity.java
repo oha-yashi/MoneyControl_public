@@ -229,8 +229,8 @@ public class MainActivity extends AppCompatActivity {
             if(iom == IOM.MOVE){
                 cv.clear();
 
-                balance = MoneyTableOpenHelper.getBalanceOf(this, wallet);
-                cv.put("balance", balance+"+"+money);
+                balance = MoneyTableOpenHelper.getBalanceOf(this, wallet2);
+                cv.put("balance", balance+intMoney);
 
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
@@ -362,31 +362,13 @@ public class MainActivity extends AppCompatActivity {
         for(int i=0; i<cursor.getCount(); i++){
             //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
 
-            /*
-            String idDate = "tableDate" + (i); //Integer.toStringは不要
-            tv = findViewById(getResources().getIdentifier(idDate, "id", getPackageName()));
-            tv.setText(cursor.getString(1).substring(5, 16));
-            //idDateの文字列でidを検索してfindViewByIdに送る
-            //そのidで取得したviewに対応する値を入れる
-            tv = findViewById(getResources().getIdentifier("tableStatus" + (i), "id", getPackageName()));
-            tv.setText(cursor.getString(2));
-            tv = findViewById(getResources().getIdentifier("tableMoney"+(i), "id", getPackageName()));
-            tv.setText(cursor.getString(3));
-            tv = findViewById(getResources().getIdentifier("tableWallet"+(i), "id", getPackageName()));
-            tv.setText(cursor.getString(4));
-            tv = findViewById(getResources().getIdentifier("tableMemo"+(i), "id", getPackageName()));
-            String g = cursor.getString(5);
-            String n = cursor.getString(6);
-            //genreない時すぐnote ある時genre : note
-            if(g.isEmpty() || n.isEmpty()){
-                tv.setText(String.format("%s%s", g, n));
-            }else{
-                tv.setText(String.format("%s : %s", g, n));
-            }
-            */
-
             String timestamp = cursor.getString(1).substring(5, 16);
-            String status = cursor.getInt(2)>0 ? getString(R.string.status_income) : getString(R.string.status_outgo) ;
+            int getIncome = cursor.getInt(2), getOutgo = cursor.getInt(3);
+            String status;
+            if(getIncome+getOutgo==0) status = "";
+            else if(getIncome > 0) status = getString(R.string.status_income);
+            else status = getString(R.string.status_outgo);
+
             String money = cursor.getInt(2)>0 ? cursor.getString(2): cursor.getString(3);
             String wallet = cursor.getString(5);
             String note;
