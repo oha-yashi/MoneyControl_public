@@ -1,5 +1,7 @@
 # MoneyControl_public
 
+これって書き換えたらcommitできるの
+
 ## apk
 
 [ここ!](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/build/outputs/apk/debug/app-debug.apk)
