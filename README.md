@@ -1,10 +1,10 @@
 # MoneyControl_public
 
-これって書き換えたらcommitできるの
-
 ## apk
 
 [ここ!](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/build/outputs/apk/debug/app-debug.apk)
+
+スマホブラウザで開いて、`Download`をクリック。ダウンロードしたapkファイルを開いてインストール。セキュリティ的な何かを許可する必要があるかも。よろしく。
 
 ## ソースコード
 
