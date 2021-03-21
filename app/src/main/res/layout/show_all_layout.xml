@@ -20,8 +20,8 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="117dp"
-        tools:layout_editor_absoluteY="163dp">
+        tools:layout_editor_absoluteX="113dp"
+        tools:layout_editor_absoluteY="69dp">
 
         <HorizontalScrollView
             android:layout_width="match_parent"
@@ -75,7 +75,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="center_horizontal"
                             android:padding="3dp"
-                            android:text="@string/str_Wallet"
+                            android:text="@string/str_Balance"
                             android:textColor="@color/black" />
 
                         <TextView
@@ -84,7 +84,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="start"
                             android:padding="3dp"
-                            android:text="@string/str_Balance"
+                            android:text="@string/str_Wallet"
                             android:textColor="@color/black" />
 
                         <TextView
