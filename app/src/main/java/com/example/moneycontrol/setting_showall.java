@@ -9,6 +9,7 @@ import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -32,23 +33,24 @@ public class setting_showall extends AppCompatActivity {
         Cursor c = db.rawQuery(MoneyTableOpenHelper.READ_ALL_QUERY, null);
         c.moveToFirst();
 
+        //LayoutParams
+        // https://teratail.com/questions/80290
+        int WC = TableRow.LayoutParams.MATCH_PARENT;
+        TableRow.LayoutParams LP = new TableRow.LayoutParams(WC, WC);
+        LP.setMarginEnd(10);
+
         for(int i=0; i<c.getCount(); i++){
             TableRow tr = new TableRow(this);
 
             for(int j=1; j<=5; j++){
                 tv = new TextView(this);
                 tv.setText(c.getString(j));
-                /*
+
                 try {
-                    int WC = ViewGroup.LayoutParams.WRAP_CONTENT;
-                    ViewGroup.LayoutParams LP = new ViewGroup.LayoutParams(WC, WC);
-                    ViewGroup.MarginLayoutParams MLP = new ViewGroup.MarginLayoutParams(WC, WC);
-                    MLP.setMargins(0, 0, 2, 0);
-                    tv.setLayoutParams(MLP);
+                    tv.setLayoutParams(LP);
                 }catch (Exception e){
                     Log.d("setMarginError", e.toString());
                 }
-                //*/
 
                 try{
                     tv.setGravity(Gravity.END);
