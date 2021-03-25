@@ -24,7 +24,7 @@
     <string name="str_Note">Note</string>
     <string name="sql_datetime_format">%m/%d %H:%M</string>
     <string name="title_activity_settings">SettingsActivity</string>
-    <string name="database_table_title">MoneyDatabase</string>
+<!--    <string name="database_table_title">MoneyDatabase</string>-->
 
     <string name="buttonWidth">100dp</string>
     <string name="buttonHeight">50dp</string>

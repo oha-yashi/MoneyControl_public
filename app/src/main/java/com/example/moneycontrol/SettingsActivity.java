@@ -51,6 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }).show();
                 return false;
             });
+            findPreference("show_balance").setSummary("各walletの残高を表示します");
             findPreference("delete").setOnPreferenceClickListener((preference)->{
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle("テーブル全削除").setMessage("取り消しできません 消去しますか？")
@@ -95,6 +96,8 @@ public class SettingsActivity extends AppCompatActivity {
 
                 return false;
             });
+
+            findPreference("database_table").setSummary(MoneyTableOpenHelper.TABLE_NAME);
         }
     }
 }

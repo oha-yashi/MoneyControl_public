@@ -7,6 +7,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.Calendar;
+
 public class MoneyTableOpenHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 2;
@@ -17,12 +19,19 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
             "income", "outgo", "balance", "wallet", "genre", "note"
     };
 
+//    public static final String TABLE_NAME = tablenameMonth();
     public static final String TABLE_NAME = "MoneyDatabase";
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
-    public static final String SQL_CREATE_QUERY = "CREATE TABLE " + TABLE_NAME + " (" + String.join(", ", DATABASE_TITLE) + ")";
+    public static final String SQL_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + String.join(", ", DATABASE_TITLE) + ")";
     public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
 
-    public MoneyTableOpenHelper(Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
+    public static String tablenameMonth(){
+        return "Y"+ Calendar.getInstance().get(Calendar.YEAR) +"M"+(Calendar.getInstance().get(Calendar.MONTH)+1);
+    }
+
+    public MoneyTableOpenHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
@@ -45,12 +54,15 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * 新しくデータベースを渡す
+     * 新しくデータベースを渡す。いつもここから。
+     * 更新されたテーブル名の存在チェックもする
      * @param context this
      * @return sqLiteDatabase_writable
      */
     public static SQLiteDatabase newDatabase(Context context){
-        return new MoneyTableOpenHelper(context).getWritableDatabase();
+        SQLiteDatabase sqLiteDatabase = new MoneyTableOpenHelper(context).getWritableDatabase();
+        sqLiteDatabase.execSQL(SQL_CREATE_QUERY);
+        return  sqLiteDatabase;
     }
 
     /**
@@ -71,7 +83,7 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
      */
     public static int getBalanceOf(Context context, String wallet){
         SQLiteDatabase sqLiteDatabase = newDatabase(context);
-        Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM MoneyDatabase WHERE wallet=? ORDER BY _id DESC LIMIT 1", new String[]{wallet});
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY _id DESC LIMIT 1", new String[]{wallet});
         cursor.moveToFirst();
         //cursor.close(); sqLiteDatabase.close();
         return cursor.getCount()==1 ? cursor.getInt(0) : 0;

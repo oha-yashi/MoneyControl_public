@@ -21,8 +21,11 @@
 
     <PreferenceCategory app:title="その他">
         <Preference
-            android:title="バージョン"
+            android:title="アプリバージョン"
             android:summary="@string/versionName"/>
+        <Preference
+            android:key="database_table"
+            android:title="現在のデータベーステーブル名" />
         <Preference
             android:key="goToGitHub"
             android:title="GitHub"

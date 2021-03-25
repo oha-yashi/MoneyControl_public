@@ -282,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
      * @param v view
      */
     public void moveButton(View v){
-        Log.d("move", "button pressed");
+//        Log.d("move", "button pressed");
         if(!isMove){
             toMove();
         }else{
@@ -295,14 +295,11 @@ public class MainActivity extends AppCompatActivity {
      * @param v view
      */
     public void moveDoButton(View v){
-        Log.d("moveDo", "button pressed");
+//        Log.d("moveDo", "button pressed");
 
-        if(!isMove){
-            //ボタンが表示されたときはisMove=trueなはずなのでないはず
-            Log.d("moveDo", "why isMove=true???");
-        }else{
+        if(isMove){
             //正常処理
-            Log.d("movedo", "do Move");
+//            Log.d("movedo", "do Move");
             iomButton(IOM.MOVE, null);
 
             fromMove();
@@ -314,22 +311,27 @@ public class MainActivity extends AppCompatActivity {
      * @param v view
      */
     public void undoButton(View v){
-        Log.d("undoButton", "clicked");
+//        Log.d("undoButton", "clicked");
         SQLiteDatabase sqLiteDatabase = MoneyTableOpenHelper.newDatabase(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
-        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 1", null);
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 3", null);
         cursor.moveToFirst();
         //削除するものが無い
         if(cursor.getCount()==0){
             sqLiteDatabase.close();
-            Log.d("undoButton", "nothing to delete");
+//            Log.d("undoButton", "nothing to delete");
             builder.setTitle("直近項目削除")
                     .setMessage("削除できる項目がありません")
                     .setPositiveButton("OK",null)
                     .show();
             return;
         }
+        //直近が資金移動だったら2つ進める
+//        if(cursor.getString(6).equals(getString(R.string.button_move))){
+//            cursor.moveToNext();
+//            cursor.moveToNext();
+//        }
         int id = cursor.getInt(0);
         for(int i=1; i<=6; i++){
             lastItem.append(cursor.getString(i)).append("|");
@@ -405,7 +407,7 @@ public class MainActivity extends AppCompatActivity {
         String none = getString(R.string.table_none);
         TextView tv;
 
-        if(items.length==5){
+        if(items!=null && items.length==5){
             tv = findViewById(getResources().getIdentifier("tableDate"+i, "id", getPackageName()));
             tv.setText(items[0]);
             tv = findViewById(getResources().getIdentifier("tableStatus"+i, "id", getPackageName()));
