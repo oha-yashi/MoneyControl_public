@@ -76,4 +76,23 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
         //cursor.close(); sqLiteDatabase.close();
         return cursor.getCount()==1 ? cursor.getInt(0) : 0;
     }
+
+    /**
+     * 今日の支出を出す
+     * @return int 支出
+     */
+    public static int todaySum(Context context){
+        int sum = 0;
+        SQLiteDatabase db = newDatabase(context);
+
+        String SEARCH_TODAYSUM_QUERY = "select total(outgo) from " + TABLE_NAME
+                + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
+        Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
+        c.moveToFirst();
+        for(int i=0; i<c.getCount(); i++)sum += c.getInt(0);
+        c.close();
+
+        db.close();
+        return sum;
+    }
 }

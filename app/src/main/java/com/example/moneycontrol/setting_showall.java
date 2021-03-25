@@ -61,8 +61,15 @@ public class setting_showall extends AppCompatActivity {
             }
 
             tv = new TextView(this);
-            String strNote = (c.getString(6).isEmpty() ? "" : c.getString(6) + " : ") + c.getString(7);
-            tv.setText(strNote);
+            String note;
+            String g = c.getString(6);
+            String n = c.getString(7);
+            if(g.isEmpty() || n.isEmpty()){
+                note = String.format("%s%s", g, n);
+            }else{
+                note = String.format("%s : %s", g, n);
+            }
+            tv.setText(note);
             tr.addView(tv);
 
             table.addView(tr);

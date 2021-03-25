@@ -359,7 +359,8 @@ public class MainActivity extends AppCompatActivity {
         cursor.moveToFirst();
         TextView tv;
 
-        for(int i=0; i<cursor.getCount(); i++){
+        int i;
+        for(i=0; i<cursor.getCount(); i++){
             //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
 
             String timestamp = cursor.getString(1).substring(5, 16);
@@ -384,6 +385,8 @@ public class MainActivity extends AppCompatActivity {
 
             cursor.moveToNext();
         }
+        for(; i<5; i++)setHistoryTable(i, null);
+
         cursor.close();
         db.close();
     }
@@ -414,26 +417,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", todaySum()));}
-
-    /**
-     * 今日の支出
-     * @return int 支出
-     */
-    private int todaySum(){
-        int sum = 0;
-        SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
-
-        String SEARCH_TODAYSUM_QUERY = "select total(outgo) from " + MoneyTableOpenHelper.TABLE_NAME
-                + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
-        Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
-        c.moveToFirst();
-        for(int i=0; i<c.getCount(); i++)sum += c.getInt(0);
-        c.close();
-
-        db.close();
-        return sum;
-    }
+    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", MoneyTableOpenHelper.todaySum(this)));}
 
     public void settingButton(View v){
         Intent intent = new Intent(this, SettingsActivity.class);
