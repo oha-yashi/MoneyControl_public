@@ -13,20 +13,39 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "MC.db";
-    private static final String[] DATABASE_TITLE = {
+    private static final String[] DATABASE_COLUMNS = {
             "_id integer primary key autoincrement", //_id行が要るらしい
             "timestamp DEFAULT (datetime('now','localtime'))", //毎回設定しなくてもこれでタイムスタンプが入る
             "income", "outgo", "balance", "wallet", "genre", "note"
     };
+    private static final boolean isDebug = true;//TODO: getTableNameの切替え。falseにすると可変になる
 
-//    public static final String TABLE_NAME = tablenameMonth();
-    public static final String TABLE_NAME = "MoneyDatabase";
+    public static final String TABLE_NAME = getTableName (); //ここで宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
-    public static final String SQL_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + String.join(", ", DATABASE_TITLE) + ")";
+    public static final String SQL_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + String.join(", ", DATABASE_COLUMNS) + ")";
     public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
 
-    public static String tablenameMonth(){
-        return "Y"+ Calendar.getInstance().get(Calendar.YEAR) +"M"+(Calendar.getInstance().get(Calendar.MONTH)+1);
+    public static String getTableName(){
+        return isDebug ? "MoneyDatabase" : "Y"+ Calendar.getInstance().get(Calendar.YEAR) +"M"+(Calendar.getInstance().get(Calendar.MONTH)+1);
+    }
+
+    /**
+     * カラム名を , 区切りで文字列にして出す
+     * @return joinedColumns
+     */
+    public static String getColumnsJoined(){
+        Log.d("getColmunsJoined", "run");
+        StringBuilder stringBuilder = new StringBuilder();
+        for(String clm: DATABASE_COLUMNS){
+            int spaceIndex = clm.indexOf(" ");
+            if(spaceIndex == -1){
+                stringBuilder.append(clm).append(",");
+            }else{
+                stringBuilder.append(clm.substring(0,spaceIndex)).append(",");
+            }
+        }
+        stringBuilder.deleteCharAt(stringBuilder.length()-1);
+        return stringBuilder.toString();
     }
 
     public MoneyTableOpenHelper(Context context) {

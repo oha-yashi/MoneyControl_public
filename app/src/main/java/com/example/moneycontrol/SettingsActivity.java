@@ -1,15 +1,34 @@
 package com.example.moneycontrol;
 
+import android.app.Activity;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.EditText;
+import android.widget.TextView;
 
+import androidx.annotation.ContentView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
+import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+
+import com.google.android.material.snackbar.Snackbar;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Objects;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -71,7 +90,8 @@ public class SettingsActivity extends AppCompatActivity {
                 sendIntent.setAction(Intent.ACTION_SEND);
 
                 StringBuilder csv = new StringBuilder();
-                SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(getActivity());//getActivityでfragmentの所属するActivityが返るので実質this
+                SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(getActivity());
+//                getActivityでfragmentの所属するActivityが返るので実質this
                 Cursor cursor = db.rawQuery(MoneyTableOpenHelper.READ_ALL_QUERY, null);
                 csv.append(String.join(",", cursor.getColumnNames())).append("\n");
                 cursor.moveToFirst();
@@ -97,7 +117,90 @@ public class SettingsActivity extends AppCompatActivity {
                 return false;
             });
 
+            findPreference("csvImport").setOnPreferenceClickListener(preference -> {
+                new AlertDialog.Builder(getActivity()).setTitle("建設中")
+                        .setMessage("csv読み込みテストしてから実装").show();
+
+                
+
+                return false;
+            });
+
             findPreference("database_table").setSummary(MoneyTableOpenHelper.TABLE_NAME);
+
+            findPreference("prefTest").setSummary(
+//                    getColumnNames
+                    MoneyTableOpenHelper.getColumnsJoined()
+            );
+
+//            テストスペース
+            Preference p = findPreference("prefTest");
+            if (false) { // TODO: テストしないときここfalse
+                prefTest(p);
+            } else {
+                p.setVisible(false);
+            }
         }
+//        テストスペースに、joinedColumnをコピペできるダイアログを出す
+        private void prefTest(Preference p){
+            EditText e = new EditText(getActivity());
+            e.setText(MoneyTableOpenHelper.getColumnsJoined());
+            p.setOnPreferenceClickListener(preference -> {
+                Log.d("p#onClick", "run");
+                new AlertDialog.Builder(getActivity()).setTitle("get columns")
+                        .setView(e).show();
+                return false;
+            });
+        }
+    }
+
+
+
+//    read csv file
+    private static final int READ_MONEY_CSV = 4;
+    private void openFile(){
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+//        intent.setType("text/csv"); //csv読み込みのつもりがうまく動かない
+        intent.setType("text/*"); //テキスト読み込み
+//        intent.setType("*/*"); //なんでも読み込み
+
+        startActivityForResult(intent, READ_MONEY_CSV);
+    }
+
+//    他のActivityから帰ってきたときに呼び出される
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+        super.onActivityResult(requestCode, resultCode, resultData);
+        if (requestCode == READ_MONEY_CSV
+                && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            Uri uri;
+            if (resultData != null) {
+                uri = resultData.getData();
+                try {
+                    getCsvFromUri(uri);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Snackbar.make(findViewById(R.id.settings), "IOExceptionError", Snackbar.LENGTH_LONG);
+                }
+            }
+        }
+    }
+
+    private String getCsvFromUri(Uri uri) throws IOException {
+        StringBuilder stringBuilder = new StringBuilder();
+        try (InputStream inputStream =
+                     getContentResolver().openInputStream(uri);
+             BufferedReader reader = new BufferedReader(
+                     new InputStreamReader(Objects.requireNonNull(inputStream)))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line).append("\n");
+            }
+        }
+        return stringBuilder.toString();
     }
 }
