@@ -7,7 +7,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 public class MoneyTableOpenHelper extends SQLiteOpenHelper {
 
@@ -20,7 +22,7 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
     };
     private static final boolean isDebug = true;//TODO: getTableNameの切替え。falseにすると可変になる
 
-    public static final String TABLE_NAME = getTableName (); //ここで宣言時代入ができている。
+    private static final String TABLE_NAME = getTableName(); //ここで宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
     public static final String SQL_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + String.join(", ", DATABASE_COLUMNS) + ")";
     public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
@@ -30,22 +32,28 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
     }
 
     /**
+     * カラム名の配列を返す
+     * @return colmuns as StringArray
+     */
+    public static String[] getColumnsArray(){
+        List<String> list = new ArrayList<>();
+        for(String column: DATABASE_COLUMNS){
+            int spaceIndex = column.indexOf(" ");
+            if(spaceIndex == -1){
+                list.add(column);
+            }else{
+                list.add(column.substring(0, spaceIndex));
+            }
+        }
+        return list.toArray(new String[0]);
+    }
+
+    /**
      * カラム名を , 区切りで文字列にして出す
      * @return joinedColumns
      */
     public static String getColumnsJoined(){
-        Log.d("getColmunsJoined", "run");
-        StringBuilder stringBuilder = new StringBuilder();
-        for(String clm: DATABASE_COLUMNS){
-            int spaceIndex = clm.indexOf(" ");
-            if(spaceIndex == -1){
-                stringBuilder.append(clm).append(",");
-            }else{
-                stringBuilder.append(clm.substring(0,spaceIndex)).append(",");
-            }
-        }
-        stringBuilder.deleteCharAt(stringBuilder.length()-1);
-        return stringBuilder.toString();
+        return String.join(",", getColumnsArray());
     }
 
     public MoneyTableOpenHelper(Context context) {

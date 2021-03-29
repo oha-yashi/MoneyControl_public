@@ -23,6 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
+import com.example.moneycontrol.setting.SettingsActivity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
@@ -78,23 +79,23 @@ public class MainActivity extends AppCompatActivity {
         Button btn_out = findViewById(R.id.buttonOutgo);
         btn_move = findViewById(R.id.moveButton);
 
-        //入力欄からfocusが外れたらキーボードを消す
-        editMoney.setOnFocusChangeListener((view, hasFocus) -> {
-            if(!hasFocus){
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        /**
+         * editText用focusChangeListener
+         * フォーカスを得たらキーボードを出す。フォーカスが無くなったら隠す
+         */
+        View.OnFocusChangeListener editFC = new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View view, boolean isFocused) {
+                InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                if(isFocused){
+                    inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
+                }else{
+                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                }
             }
-        });
-        editMemo.setOnFocusChangeListener((view, hasFocus) -> {
-            if(!hasFocus){
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-            }else{
-                //Memoがfocusを手に入れたときキーボード出す
-                InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
-            }
-        });
+        };
+        editMoney.setOnFocusChangeListener(editFC);
+        editMemo.setOnFocusChangeListener(editFC);
 
         //背景をタッチした時focusを奪う
         findViewById(R.id.backGroundLayout).setOnTouchListener((view, motionEvent) -> {
@@ -124,15 +125,6 @@ public class MainActivity extends AppCompatActivity {
         db_setting.close();
     }
     //End of OnCreate
-
-/*
-    @Override
-    protected void onRestart() {
-        super.onRestart();
-        setTodaySum();
-        readData();
-    }
- */
 
     //inoutボタンのフリック設定
     @SuppressLint("ClickableViewAccessibility")
@@ -226,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
             cv.put("wallet", wallet);
             cv.put("genre", iom==IOM.MOVE ? text_move : genre.isEmpty() ? "" : genre);
             cv.put("note", iom==IOM.MOVE ? "-"+money : note);
-            db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
+            db.insert(MoneyTableOpenHelper.getTableName(), null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
@@ -239,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
                 cv.put("note", "+"+money);
-                db.insert(MoneyTableOpenHelper.TABLE_NAME, null, cv);
+                db.insert(MoneyTableOpenHelper.getTableName(), null, cv);
                 Log.d("iomButton", cv.toString());
             }
             db.close();
@@ -342,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("削除", (dialogInterface, i) -> {
                     Log.d("delete", ""+id+" delete");
                     final SQLiteDatabase sqlDB = MoneyTableOpenHelper.newDatabase(this);
-                    sqlDB.execSQL("DELETE FROM "+ MoneyTableOpenHelper.TABLE_NAME+" WHERE _id="+id);
+                    sqlDB.execSQL("DELETE FROM "+ MoneyTableOpenHelper.getTableName()+" WHERE _id="+id);
                     sqlDB.close();
                     readData();
                     setTodaySum();

@@ -1,27 +1,26 @@
-package com.example.moneycontrol;
+package com.example.moneycontrol.setting;
 
 import android.app.Activity;
-import android.content.ClipboardManager;
-import android.content.Context;
-import android.content.DialogInterface;
+import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.annotation.ContentView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.example.moneycontrol.MoneySettingOpenHelper;
+import com.example.moneycontrol.MoneyTableOpenHelper;
+import com.example.moneycontrol.R;
+import com.example.moneycontrol.setting.setting_showall;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.BufferedReader;
@@ -120,18 +119,13 @@ public class SettingsActivity extends AppCompatActivity {
             findPreference("csvImport").setOnPreferenceClickListener(preference -> {
                 new AlertDialog.Builder(getActivity()).setTitle("建設中")
                         .setMessage("csv読み込みテストしてから実装").show();
-
-                
-
+//                openFile(); // 呼び出したいけどここがstaticなのでnonstaticなのは無理
                 return false;
             });
 
-            findPreference("database_table").setSummary(MoneyTableOpenHelper.TABLE_NAME);
+            findPreference("database_table").setSummary(MoneyTableOpenHelper.getTableName());
 
-            findPreference("prefTest").setSummary(
-//                    getColumnNames
-                    MoneyTableOpenHelper.getColumnsJoined()
-            );
+            findPreference("prefTest").setSummary(MoneyTableOpenHelper.getColumnsJoined());
 
 //            テストスペース
             Preference p = findPreference("prefTest");
@@ -155,8 +149,10 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
 
-
+//
 //    read csv file
+//    TODO: staticなところから呼び出せない。別activityにまとめるべし
+//
     private static final int READ_MONEY_CSV = 4;
     private void openFile(){
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -190,17 +186,48 @@ public class SettingsActivity extends AppCompatActivity {
         }
     }
 
-    private String getCsvFromUri(Uri uri) throws IOException {
-        StringBuilder stringBuilder = new StringBuilder();
+    /**
+     * uriで取得したファイルからデータベースに書き込む
+     * @param uri
+     * @return boolean 書き込みの成否
+     * @throws IOException
+     */
+    private boolean getCsvFromUri(Uri uri) throws IOException {
+        SQLiteDatabase sqLiteDatabase = MoneyTableOpenHelper.newDatabase(this);
         try (InputStream inputStream =
                      getContentResolver().openInputStream(uri);
              BufferedReader reader = new BufferedReader(
                      new InputStreamReader(Objects.requireNonNull(inputStream)))) {
             String line;
+            boolean isFirstLine = true; //これが立っている時はカラム名行の読み込み
+            String[] columns = MoneyTableOpenHelper.getColumnsArray();
             while ((line = reader.readLine()) != null) {
-                stringBuilder.append(line).append("\n");
+//                stringBuilder.append(line).append("\n");
+                if(isFirstLine){
+                    // 1行目の読み込み
+                    if(line.equals(MoneyTableOpenHelper.getColumnsJoined())){
+                        // 対応したファイル
+                        Toast.makeText(this, "読み込みます", Toast.LENGTH_SHORT);
+                        isFirstLine = false;
+                    }else{
+                        // 不正なファイル
+                        Toast.makeText(this, "不正なファイルです", Toast.LENGTH_SHORT);
+                        sqLiteDatabase.close();
+                        return false;
+                    }
+                }else{
+                    // 2行目以降
+                    ContentValues contentValues = new ContentValues();
+                    String[] values = line.split(",");
+                    for(int i=0; i<values.length; i++){
+                        contentValues.put(columns[i], values[i]);
+                    }
+                    sqLiteDatabase.insert(MoneyTableOpenHelper.getTableName(),null, contentValues);
+                }
+                //end while
             }
         }
-        return stringBuilder.toString();
+        sqLiteDatabase.close();
+        return true;
     }
 }

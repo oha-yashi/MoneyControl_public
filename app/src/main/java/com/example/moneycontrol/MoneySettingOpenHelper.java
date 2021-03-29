@@ -19,8 +19,8 @@ public class MoneySettingOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "MS.db";
 
     public static final int INCOME = 0, OUTGO = 1, WALLET = 2;
-    public static final String[] TABLE_NAME;
-    //ここ1行にしたいけどなんかエラー出る
+    public static String[] TABLE_NAME;
+//    なんでこれ1行にならないの
     static {
         TABLE_NAME = new String[]{"IncomeGenre", "OutgoGenre", "Wallet"};
     }

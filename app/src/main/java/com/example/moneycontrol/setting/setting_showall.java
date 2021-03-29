@@ -1,4 +1,4 @@
-package com.example.moneycontrol;
+package com.example.moneycontrol.setting;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -13,6 +13,9 @@ import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import com.example.moneycontrol.MoneyTableOpenHelper;
+import com.example.moneycontrol.R;
 
 public class setting_showall extends AppCompatActivity {
     private SQLiteDatabase db;
