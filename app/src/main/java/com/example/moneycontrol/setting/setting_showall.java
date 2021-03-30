@@ -1,18 +1,15 @@
 package com.example.moneycontrol.setting;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.text.Layout;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.moneycontrol.MoneyTableOpenHelper;
 import com.example.moneycontrol.R;
@@ -47,7 +44,8 @@ public class setting_showall extends AppCompatActivity {
 
             for(int j=1; j<=5; j++){
                 tv = new TextView(this);
-                tv.setText(c.getString(j));
+                String getS = c.getString(j);
+                tv.setText(getS==null?"":getS);
 
                 try {
                     tv.setLayoutParams(LP);
@@ -67,6 +65,9 @@ public class setting_showall extends AppCompatActivity {
             String note;
             String g = c.getString(6);
             String n = c.getString(7);
+//            TODO: 要る
+            if(g==null)g="";
+            if(n==null)n="";
             if(g.isEmpty() || n.isEmpty()){
                 note = String.format("%s%s", g, n);
             }else{

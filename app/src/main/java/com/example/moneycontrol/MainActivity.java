@@ -373,6 +373,9 @@ public class MainActivity extends AppCompatActivity {
             String note;
             String g = cursor.getString(6);
             String n = cursor.getString(7);
+//            TODO: 要る
+            if(g==null)g="";
+            if(n==null)n="";
             if(g.isEmpty() || n.isEmpty()){
                 note = String.format("%s%s", g, n);
             }else{
