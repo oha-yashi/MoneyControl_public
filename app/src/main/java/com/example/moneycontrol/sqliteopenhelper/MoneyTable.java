@@ -22,13 +22,30 @@ public class MoneyTable extends SQLiteOpenHelper {
     };
     private static final boolean isDebug = false;//TODO: getTableNameの切替え。falseにすると可変になる
 
-    private static final String TABLE_NAME = getTableName(); //ここで宣言時代入ができている。
+    private static String TABLE_NAME = getTodayTableName(); //ここで一応宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
     public static final String SQL_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + String.join(", ", DATABASE_COLUMNS) + ")";
     public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
 
-    public static String getTableName(){
+    public static String getTodayTableName(){
         return isDebug ? "MoneyDatabase" : "Y"+ Calendar.getInstance().get(Calendar.YEAR) +"M"+(Calendar.getInstance().get(Calendar.MONTH)+1);
+    }
+    public static void setTableName(String tablename){
+        TABLE_NAME = tablename;
+    }
+    public static String getExistTableNames(Context context){
+        String GET_TABLENAME_QUERY = "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%'";
+        SQLiteDatabase sqLiteDatabase = newDatabase(context);
+        Cursor cursor = sqLiteDatabase.rawQuery(GET_TABLENAME_QUERY, null);
+        StringBuilder stringBuilder = new StringBuilder();
+        cursor.moveToFirst();
+        for(int i=0; i<cursor.getCount(); i++){
+            stringBuilder.append(cursor.getString(0)).append("/");
+            cursor.moveToNext();
+        }
+        cursor.close();
+        sqLiteDatabase.close();
+        return stringBuilder.toString();
     }
 
     /**
@@ -82,13 +99,20 @@ public class MoneyTable extends SQLiteOpenHelper {
 
     /**
      * 新しくデータベースを渡す。いつもここから。
-     * 更新されたテーブル名の存在チェックもする
+     * 更新されたテーブル名の存在チェックもする（クエリで処理）
      * @param context this
-     * @return sqLiteDatabase_writable
+     * @param tablename テーブル名
+     * @return sqLiteDatabase
      */
+    public static SQLiteDatabase newDatabase(Context context, String tablename){
+        SQLiteDatabase sqLiteDatabase = newDatabase(context);
+        setTableName(tablename);
+        return sqLiteDatabase;
+    }
     public static SQLiteDatabase newDatabase(Context context){
         SQLiteDatabase sqLiteDatabase = new MoneyTable(context).getWritableDatabase();
         sqLiteDatabase.execSQL(SQL_CREATE_QUERY);
+        setTableName(getTodayTableName());
         return  sqLiteDatabase;
     }
 

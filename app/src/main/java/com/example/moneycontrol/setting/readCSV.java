@@ -106,7 +106,7 @@ public class readCSV extends Activity {
                     for(int i=0; i<values.length; i++){
                         contentValues.put(columns[i], values[i]);
                     }
-                    sqLiteDatabase.insert(MoneyTable.getTableName(),null, contentValues);
+                    sqLiteDatabase.insert(MoneyTable.getTodayTableName(),null, contentValues);
                 }
                 //end while
             }

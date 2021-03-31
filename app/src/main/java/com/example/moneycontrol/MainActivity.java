@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
             cv.put("wallet", wallet);
             cv.put("genre", iom==IOM.MOVE ? text_move : genre.isEmpty() ? "" : genre);
             cv.put("note", iom==IOM.MOVE ? "-"+money : note);
-            db.insert(MoneyTable.getTableName(), null, cv);
+            db.insert(MoneyTable.getTodayTableName(), null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
                 cv.put("note", "+"+money);
-                db.insert(MoneyTable.getTableName(), null, cv);
+                db.insert(MoneyTable.getTodayTableName(), null, cv);
                 Log.d("iomButton", cv.toString());
             }
             db.close();
@@ -334,7 +334,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("削除", (dialogInterface, i) -> {
                     Log.d("delete", ""+id+" delete");
                     final SQLiteDatabase sqlDB = MoneyTable.newDatabase(this);
-                    sqlDB.execSQL("DELETE FROM "+ MoneyTable.getTableName()+" WHERE _id="+id);
+                    sqlDB.execSQL("DELETE FROM "+ MoneyTable.getTodayTableName()+" WHERE _id="+id);
                     sqlDB.close();
                     readData();
                     setTodaySum();

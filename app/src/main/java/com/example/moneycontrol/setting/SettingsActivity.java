@@ -115,14 +115,15 @@ public class SettingsActivity extends AppCompatActivity {
                 return false;
             });
 
-            findPreference("database_table").setSummary(MoneyTable.getTableName());
+            findPreference("database_table").setSummary(MoneyTable.getTodayTableName());
 
             findPreference("prefTest").setSummary(MoneyTable.getColumnsJoined());
 
 //            テストスペース
             Preference p = findPreference("prefTest");
-            if (false) { // TODO: テストしないときここfalse
-                prefTest(p);
+            if (true) { // TODO: テストしないときここfalse
+//                prefTest(p);
+                p.setSummary(MoneyTable.getExistTableNames(getActivity()));
             } else {
                 p.setVisible(false);
             }
