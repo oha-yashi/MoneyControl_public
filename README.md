@@ -10,5 +10,6 @@
 
 - [java](https://github.com/oha-yashi/MoneyControl_public/tree/master/app/src/main/java/com/example/moneycontrol)
 - [layout](https://github.com/oha-yashi/MoneyControl_public/tree/master/app/src/main/res/layout)
+- [xml(values)](https://github.com/oha-yashi/MoneyControl_public/tree/master/app/src/main/res/values)
 - [xml(setting)](https://github.com/oha-yashi/MoneyControl_public/tree/master/app/src/main/res/xml)
 - [Manifest](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/src/main/AndroidManifest.xml)
