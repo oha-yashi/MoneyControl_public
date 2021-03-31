@@ -22,7 +22,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
-public class readCSV extends AppCompatActivity {
+public class readCSV extends Activity {
 //
 //    read csv file
 //
@@ -30,7 +30,7 @@ public class readCSV extends AppCompatActivity {
     protected void onCreate(Bundle bundle){
         super.onCreate(bundle);
 //
-//        レイアウトを持たないアクティビティ
+//        透明なstyle
 //
         openFile();
     }
@@ -51,6 +51,7 @@ public class readCSV extends AppCompatActivity {
     public void onActivityResult(int requestCode, int resultCode,
                                  Intent resultData) {
         super.onActivityResult(requestCode, resultCode, resultData);
+        Log.d("request"+requestCode, "result"+resultCode);
         if (requestCode == READ_MONEY_CSV
                 && resultCode == Activity.RESULT_OK) {
             // The result data contains a URI for the document or directory that
@@ -65,6 +66,9 @@ public class readCSV extends AppCompatActivity {
                     Snackbar.make(findViewById(R.id.settings), "IOExceptionError", Snackbar.LENGTH_LONG);
                 }
             }
+        }else if(resultCode == Activity.RESULT_CANCELED){
+            Log.d("activity","finish");
+            finish();
         }
     }
 

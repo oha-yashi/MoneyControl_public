@@ -20,7 +20,7 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
             "timestamp DEFAULT (datetime('now','localtime'))", //毎回設定しなくてもこれでタイムスタンプが入る
             "income", "outgo", "balance", "wallet", "genre", "note"
     };
-    private static final boolean isDebug = true;//TODO: getTableNameの切替え。falseにすると可変になる
+    private static final boolean isDebug = false;//TODO: getTableNameの切替え。falseにすると可変になる
 
     private static final String TABLE_NAME = getTableName(); //ここで宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
