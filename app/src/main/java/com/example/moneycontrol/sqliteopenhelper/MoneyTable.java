@@ -1,4 +1,4 @@
-package com.example.moneycontrol;
+package com.example.moneycontrol.sqliteopenhelper;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class MoneyTableOpenHelper extends SQLiteOpenHelper {
+public class MoneyTable extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "MC.db";
@@ -56,7 +56,7 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
         return String.join(",", getColumnsArray());
     }
 
-    public MoneyTableOpenHelper(Context context) {
+    public MoneyTable(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
@@ -87,7 +87,7 @@ public class MoneyTableOpenHelper extends SQLiteOpenHelper {
      * @return sqLiteDatabase_writable
      */
     public static SQLiteDatabase newDatabase(Context context){
-        SQLiteDatabase sqLiteDatabase = new MoneyTableOpenHelper(context).getWritableDatabase();
+        SQLiteDatabase sqLiteDatabase = new MoneyTable(context).getWritableDatabase();
         sqLiteDatabase.execSQL(SQL_CREATE_QUERY);
         return  sqLiteDatabase;
     }

@@ -24,6 +24,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.moneycontrol.setting.SettingsActivity;
+import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
+import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
@@ -45,9 +47,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView I_arrow;
     private Button btn_move; //buttonMove
 
-    //private MoneyTableOpenHelper helper;
-    //private SQLiteDatabase db;
-    //private SQLiteDatabase db_setting;
+
 
     private enum IOM {INCOME, OUTGO, MOVE}
 
@@ -66,8 +66,8 @@ public class MainActivity extends AppCompatActivity {
         spnWallet2 = findViewById(R.id.spinner2);
 
         isMove = false;
-        SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
-        SQLiteDatabase db_setting = MoneySettingOpenHelper.databaseNullCheck(this, null);
+        SQLiteDatabase db = MoneyTable.newDatabase(this);
+        SQLiteDatabase db_setting = MoneySetting.databaseNullCheck(this, null);
 
         L_memo = findViewById(R.id.memoLayout);
         L_move = findViewById(R.id.moveLayout);
@@ -116,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         //別スレッドにしたい
         //spinnerにwalletを設定する
-        String[] LS = MoneySettingOpenHelper.getList(this, MoneySettingOpenHelper.WALLET);
+        String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         setTodaySum();
@@ -158,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("up", "outButton");
                     //genre設定してiomButton
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    String[] item = MoneySettingOpenHelper.getList(this, isIncome?0:1);
+                    String[] item = MoneySetting.getList(this, isIncome?0:1);
                     builder.setTitle(R.string.select_genre)
                             .setItems(item, (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, item[i])
                             ).show();
@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.backGroundLayout).requestFocus();
 
         if(!TextUtils.isEmpty(money)){
-            SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
+            SQLiteDatabase db = MoneyTable.newDatabase(this);
             int intMoney = Integer.parseInt(money);
 
             String text_move = getString(R.string.button_move);
@@ -208,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
             if(iom==IOM.OUTGO)cv.put("outgo", money);
             //MOVEはinout欄には書かない
 
-            int balance = MoneyTableOpenHelper.getBalanceOf(this, wallet);
+            int balance = MoneyTable.getBalanceOf(this, wallet);
             if(iom==IOM.INCOME){
                 cv.put("balance", balance + intMoney);
             }else{
@@ -218,20 +218,20 @@ public class MainActivity extends AppCompatActivity {
             cv.put("wallet", wallet);
             cv.put("genre", iom==IOM.MOVE ? text_move : genre.isEmpty() ? "" : genre);
             cv.put("note", iom==IOM.MOVE ? "-"+money : note);
-            db.insert(MoneyTableOpenHelper.getTableName(), null, cv);
+            db.insert(MoneyTable.getTableName(), null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
             if(iom == IOM.MOVE){
                 cv.clear();
 
-                balance = MoneyTableOpenHelper.getBalanceOf(this, wallet2);
+                balance = MoneyTable.getBalanceOf(this, wallet2);
                 cv.put("balance", balance+intMoney);
 
                 cv.put("wallet", wallet2);
                 cv.put("genre", text_move);
                 cv.put("note", "+"+money);
-                db.insert(MoneyTableOpenHelper.getTableName(), null, cv);
+                db.insert(MoneyTable.getTableName(), null, cv);
                 Log.d("iomButton", cv.toString());
             }
             db.close();
@@ -304,7 +304,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public void undoButton(View v){
 //        Log.d("undoButton", "clicked");
-        SQLiteDatabase sqLiteDatabase = MoneyTableOpenHelper.newDatabase(this);
+        SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
         Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 3", null);
@@ -333,8 +333,8 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(lastItem.toString())
                 .setPositiveButton("削除", (dialogInterface, i) -> {
                     Log.d("delete", ""+id+" delete");
-                    final SQLiteDatabase sqlDB = MoneyTableOpenHelper.newDatabase(this);
-                    sqlDB.execSQL("DELETE FROM "+ MoneyTableOpenHelper.getTableName()+" WHERE _id="+id);
+                    final SQLiteDatabase sqlDB = MoneyTable.newDatabase(this);
+                    sqlDB.execSQL("DELETE FROM "+ MoneyTable.getTableName()+" WHERE _id="+id);
                     sqlDB.close();
                     readData();
                     setTodaySum();
@@ -350,8 +350,8 @@ public class MainActivity extends AppCompatActivity {
      * 最新最大5件の読み取り
      */
     private void readData(){
-        SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(this);
-        Cursor cursor = MoneyTableOpenHelper.getNewData(db, 5);
+        SQLiteDatabase db = MoneyTable.newDatabase(this);
+        Cursor cursor = MoneyTable.getNewData(db, 5);
 
         //読み取り
         cursor.moveToFirst();
@@ -418,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", MoneyTableOpenHelper.todaySum(this)));}
+    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", MoneyTable.todaySum(this)));}
 
     public void settingButton(View v){
         Intent intent = new Intent(this, SettingsActivity.class);

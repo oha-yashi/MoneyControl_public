@@ -11,7 +11,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.moneycontrol.MoneyTableOpenHelper;
+import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
 public class setting_showall extends AppCompatActivity {
@@ -21,7 +21,7 @@ public class setting_showall extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.show_all_layout);
-        db = MoneyTableOpenHelper.newDatabase(this);
+        db = MoneyTable.newDatabase(this);
         showAll();
         db.close();
     }
@@ -30,7 +30,7 @@ public class setting_showall extends AppCompatActivity {
         TableLayout table = findViewById(R.id.tableALL);
         TextView tv;
 
-        Cursor c = db.rawQuery(MoneyTableOpenHelper.READ_ALL_QUERY, null);
+        Cursor c = db.rawQuery(MoneyTable.READ_ALL_QUERY, null);
         c.moveToFirst();
 
         //LayoutParams

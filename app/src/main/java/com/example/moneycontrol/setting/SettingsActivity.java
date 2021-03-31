@@ -1,15 +1,11 @@
 package com.example.moneycontrol.setting;
 
-import android.app.Activity;
-import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -17,17 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.example.moneycontrol.MoneySettingOpenHelper;
-import com.example.moneycontrol.MoneyTableOpenHelper;
+import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
+import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
-import com.example.moneycontrol.setting.setting_showall;
-import com.google.android.material.snackbar.Snackbar;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.Objects;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -58,12 +46,12 @@ public class SettingsActivity extends AppCompatActivity {
             });
             findPreference("show_balance").setOnPreferenceClickListener(preference -> {
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                CharSequence[] walletList = MoneySettingOpenHelper.getList(requireContext(), MoneySettingOpenHelper.WALLET);
+                CharSequence[] walletList = MoneySetting.getList(requireContext(), MoneySetting.WALLET);
                 builder.setTitle("残額表示")
                         .setItems(walletList, (dialogInterface, i) -> {
                             AlertDialog.Builder builder1 = new AlertDialog.Builder(requireContext());
                             String getWallet = (String) walletList[i];
-                            int getBalance = MoneyTableOpenHelper.getBalanceOf(requireContext(), getWallet);
+                            int getBalance = MoneyTable.getBalanceOf(requireContext(), getWallet);
                             builder1.setTitle("残額 of "+getWallet)
                                     .setMessage(getBalance+"円").show();
                         }).show();
@@ -74,9 +62,9 @@ public class SettingsActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
                 builder.setTitle("テーブル全削除").setMessage("取り消しできません 消去しますか？")
                         .setPositiveButton("削除", (dialogInterface, i) -> {
-                            SQLiteDatabase sqLiteDatabase = MoneyTableOpenHelper.newDatabase(getContext());
-                            sqLiteDatabase.execSQL(MoneyTableOpenHelper.SQL_DELETE_QUERY);
-                            sqLiteDatabase.execSQL(MoneyTableOpenHelper.SQL_CREATE_QUERY);
+                            SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
+                            sqLiteDatabase.execSQL(MoneyTable.SQL_DELETE_QUERY);
+                            sqLiteDatabase.execSQL(MoneyTable.SQL_CREATE_QUERY);
                             new AlertDialog.Builder(requireContext()).setMessage("再起動してください").show();
                         })
                         .setNegativeButton("削除しません", null)
@@ -89,9 +77,9 @@ public class SettingsActivity extends AppCompatActivity {
                 sendIntent.setAction(Intent.ACTION_SEND);
 
                 StringBuilder csv = new StringBuilder();
-                SQLiteDatabase db = MoneyTableOpenHelper.newDatabase(getActivity());
+                SQLiteDatabase db = MoneyTable.newDatabase(getActivity());
 //                getActivityでfragmentの所属するActivityが返るので実質this
-                Cursor cursor = db.rawQuery(MoneyTableOpenHelper.READ_ALL_QUERY, null);
+                Cursor cursor = db.rawQuery(MoneyTable.READ_ALL_QUERY, null);
                 csv.append(String.join(",", cursor.getColumnNames())).append("\n");
                 cursor.moveToFirst();
                 int columns = cursor.getColumnCount();
@@ -127,9 +115,9 @@ public class SettingsActivity extends AppCompatActivity {
                 return false;
             });
 
-            findPreference("database_table").setSummary(MoneyTableOpenHelper.getTableName());
+            findPreference("database_table").setSummary(MoneyTable.getTableName());
 
-            findPreference("prefTest").setSummary(MoneyTableOpenHelper.getColumnsJoined());
+            findPreference("prefTest").setSummary(MoneyTable.getColumnsJoined());
 
 //            テストスペース
             Preference p = findPreference("prefTest");
@@ -142,7 +130,7 @@ public class SettingsActivity extends AppCompatActivity {
 //        テストスペースに、joinedColumnをコピペできるダイアログを出す
         private void prefTest(Preference p){
             EditText e = new EditText(getActivity());
-            e.setText(MoneyTableOpenHelper.getColumnsJoined());
+            e.setText(MoneyTable.getColumnsJoined());
             p.setOnPreferenceClickListener(preference -> {
                 Log.d("p#onClick", "run");
                 new AlertDialog.Builder(getActivity()).setTitle("get columns")

@@ -1,4 +1,4 @@
-package com.example.moneycontrol;
+package com.example.moneycontrol.sqliteopenhelper;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MoneySettingOpenHelper extends SQLiteOpenHelper {
+public class MoneySetting extends SQLiteOpenHelper {
     private static final String TAG = "MSOH";
 
     private static final int DATABASE_VERSION = 3 ;
@@ -34,7 +34,7 @@ public class MoneySettingOpenHelper extends SQLiteOpenHelper {
         return "CREATE TABLE "+ TABLE_NAME[item] +" (_id integer primary key autoincrement, name)";
     }
 
-    public MoneySettingOpenHelper(@Nullable Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
+    public MoneySetting(@Nullable Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
@@ -63,7 +63,7 @@ public class MoneySettingOpenHelper extends SQLiteOpenHelper {
     public static SQLiteDatabase databaseNullCheck(Context context, @org.jetbrains.annotations.Nullable SQLiteDatabase sqLiteDatabase){
         Log.d(TAG, "nullCheck");
         if(sqLiteDatabase==null){
-            return new MoneySettingOpenHelper(context).getWritableDatabase();
+            return new MoneySetting(context).getWritableDatabase();
         }else{
             return sqLiteDatabase;
         }
@@ -78,7 +78,7 @@ public class MoneySettingOpenHelper extends SQLiteOpenHelper {
     public static String[] getList(Context context, int item){
         List<String> list = new ArrayList<>();
         String table = TABLE_NAME[item];
-        Cursor c = MoneySettingOpenHelper.databaseNullCheck(context, null).rawQuery(
+        Cursor c = MoneySetting.databaseNullCheck(context, null).rawQuery(
                 "SELECT name FROM " + table, null
         );
         c.moveToFirst();

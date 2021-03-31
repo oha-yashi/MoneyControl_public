@@ -10,9 +10,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.moneycontrol.MoneyTableOpenHelper;
+import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -79,19 +77,19 @@ public class readCSV extends Activity {
      * @throws IOException
      */
     private boolean getCsvFromUri(Uri uri) throws IOException {
-        SQLiteDatabase sqLiteDatabase = MoneyTableOpenHelper.newDatabase(this);
+        SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this);
         try (InputStream inputStream =
                      getContentResolver().openInputStream(uri);
              BufferedReader reader = new BufferedReader(
                      new InputStreamReader(Objects.requireNonNull(inputStream)))) {
             String line;
             boolean isFirstLine = true; //これが立っている時はカラム名行の読み込み
-            String[] columns = MoneyTableOpenHelper.getColumnsArray();
+            String[] columns = MoneyTable.getColumnsArray();
             while ((line = reader.readLine()) != null) {
 //                stringBuilder.append(line).append("\n");
                 if(isFirstLine){
                     // 1行目の読み込み
-                    if(line.equals(MoneyTableOpenHelper.getColumnsJoined())){
+                    if(line.equals(MoneyTable.getColumnsJoined())){
                         // 対応したファイル
                         Toast.makeText(this, "読み込みます", Toast.LENGTH_SHORT);
                         isFirstLine = false;
@@ -108,7 +106,7 @@ public class readCSV extends Activity {
                     for(int i=0; i<values.length; i++){
                         contentValues.put(columns[i], values[i]);
                     }
-                    sqLiteDatabase.insert(MoneyTableOpenHelper.getTableName(),null, contentValues);
+                    sqLiteDatabase.insert(MoneyTable.getTableName(),null, contentValues);
                 }
                 //end while
             }
