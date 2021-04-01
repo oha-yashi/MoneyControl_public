@@ -159,3 +159,4 @@ public class MoneyTable extends SQLiteOpenHelper {
         return sum;
     }
 }
+

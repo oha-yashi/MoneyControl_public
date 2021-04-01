@@ -17,6 +17,8 @@ import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
+import java.util.ArrayList;
+
 
 public class SettingsActivity extends AppCompatActivity {
     @Override
@@ -123,6 +125,12 @@ public class SettingsActivity extends AppCompatActivity {
             Preference p = findPreference("prefTest");
             if (true) { // TODO: テストしないときここfalse
 //                prefTest(p);
+/*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
+                String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};
+                for(String s: AS) {
+                    Log.d("testDROP", s);
+                    sqLiteDatabase.execSQL("DROP TABLE IF EXISTS "+s);
+                }*/
                 p.setSummary(MoneyTable.getExistTableNames(getActivity()));
             } else {
                 p.setVisible(false);

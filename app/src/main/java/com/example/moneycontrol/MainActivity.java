@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -307,10 +309,17 @@ public class MainActivity extends AppCompatActivity {
         SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
-        Cursor cursor = sqLiteDatabase.rawQuery("SELECT * FROM MoneyDatabase ORDER BY _id DESC LIMIT 3", null);
-        cursor.moveToFirst();
+        Cursor cursor = sqLiteDatabase.rawQuery(MoneyTable.READ_ALL_QUERY, null);
+        cursor.moveToLast();
+
+        //直近が資金移動だったら進める
+        while(cursor.getString(6).equals(getString(R.string.button_move))){
+            cursor.moveToPrevious();
+        }
+
         //削除するものが無い
-        if(cursor.getCount()==0){
+        if(cursor.getCount()==0 || cursor.isBeforeFirst()){
+            cursor.close();
             sqLiteDatabase.close();
 //            Log.d("undoButton", "nothing to delete");
             builder.setTitle("直近項目削除")
@@ -319,11 +328,6 @@ public class MainActivity extends AppCompatActivity {
                     .show();
             return;
         }
-        //直近が資金移動だったら2つ進める
-//        if(cursor.getString(6).equals(getString(R.string.button_move))){
-//            cursor.moveToNext();
-//            cursor.moveToNext();
-//        }
         int id = cursor.getInt(0);
         for(int i=1; i<=6; i++){
             lastItem.append(cursor.getString(i)).append("|");
@@ -348,48 +352,61 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 最新最大5件の読み取り
+     * done in thread
      */
     private void readData(){
-        SQLiteDatabase db = MoneyTable.newDatabase(this);
-        Cursor cursor = MoneyTable.getNewData(db, 5);
+//        Thread
+//        https://qiita.com/8yabusa/items/f8c9bb7eb81175c49e97
+        final Handler handler = new Handler(Looper.getMainLooper());
+        new Thread(() -> {
 
-        //読み取り
-        cursor.moveToFirst();
-        TextView tv;
+            SQLiteDatabase db = MoneyTable.newDatabase(this);
+            Cursor cursor = MoneyTable.getNewData(db, 5);
 
-        int i;
-        for(i=0; i<cursor.getCount(); i++){
-            //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
+            //読み取り
+            cursor.moveToFirst();
+            TextView tv;
 
-            String timestamp = cursor.getString(1).substring(5, 16);
-            int getIncome = cursor.getInt(2), getOutgo = cursor.getInt(3);
-            String status;
-            if(getIncome+getOutgo==0) status = "";
-            else if(getIncome > 0) status = getString(R.string.status_income);
-            else status = getString(R.string.status_outgo);
+            int i;
+            for (i = 0; i < cursor.getCount(); i++) {
+                //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
 
-            String money = cursor.getInt(2)>0 ? cursor.getString(2): cursor.getString(3);
-            String wallet = cursor.getString(5);
-            String note;
-            String g = cursor.getString(6);
-            String n = cursor.getString(7);
+                String timestamp = cursor.getString(1).substring(5, 16);
+                int getIncome = cursor.getInt(2), getOutgo = cursor.getInt(3);
+                String status;
+                if (getIncome + getOutgo == 0) status = "";
+                else if (getIncome > 0) status = getString(R.string.status_income);
+                else status = getString(R.string.status_outgo);
+
+                String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
+                String wallet = cursor.getString(5);
+                String note;
+                String g = cursor.getString(6);
+                String n = cursor.getString(7);
 //            TODO: 要る
-            if(g==null)g="";
-            if(n==null)n="";
-            if(g.isEmpty() || n.isEmpty()){
-                note = String.format("%s%s", g, n);
-            }else{
-                note = String.format("%s : %s", g, n);
+                if (g == null) g = "";
+                if (n == null) n = "";
+                if (g.isEmpty() || n.isEmpty()) {
+                    note = String.format("%s%s", g, n);
+                } else {
+                    note = String.format("%s : %s", g, n);
+                }
+
+                int ii = i;
+                handler.post(()-> {
+                    setHistoryTable(ii, new String[]{timestamp, status, money, wallet, note});
+                });
+                cursor.moveToNext();
+            }
+            for (; i < 5; i++) {
+                int ii = i;
+                handler.post(()->setHistoryTable(ii, null));
+
             }
 
-            setHistoryTable(i, new String[]{timestamp, status, money, wallet, note});
-
-            cursor.moveToNext();
-        }
-        for(; i<5; i++)setHistoryTable(i, null);
-
-        cursor.close();
-        db.close();
+            cursor.close();
+            db.close();
+        }).start();
     }
 
     /**
