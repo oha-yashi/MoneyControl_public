@@ -123,7 +123,7 @@ public class SettingsActivity extends AppCompatActivity {
 
 //            テストスペース
             Preference p = findPreference("prefTest");
-            if (true) { // TODO: テストしないときここfalse
+            if (false) { // TODO: テストしないときここfalse
 //                prefTest(p);
 /*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
                 String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};

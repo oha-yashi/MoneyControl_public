@@ -105,12 +105,9 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
-        //addButtonでeditMoneyする
-        FloatingActionButton aB = findViewById(R.id.addButton);
-        aB.setOnClickListener(view -> {
+        //addButtonでeditMoneyにフォーカス当てる
+        ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view -> {
             editMoney.requestFocus();
-            InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
-            imm.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT,InputMethodManager.HIDE_NOT_ALWAYS);
         });
 
         btn_in.setOnTouchListener(ioButtonFlick);
@@ -118,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         //別スレッドにしたい
         //spinnerにwalletを設定する
+        new Thread().start();
         String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
@@ -355,7 +353,7 @@ public class MainActivity extends AppCompatActivity {
      * done in thread
      */
     private void readData(){
-//        Thread
+//        TODO: Thread
 //        https://qiita.com/8yabusa/items/f8c9bb7eb81175c49e97
         final Handler handler = new Handler(Looper.getMainLooper());
         new Thread(() -> {
