@@ -49,9 +49,12 @@ public class MainActivity extends AppCompatActivity {
     private ImageView I_arrow;
     private Button btn_move; //buttonMove
 
+    private Handler handler;
 
-
-    private enum IOM {INCOME, OUTGO, MOVE}
+//    private enum IOM {INCOME, OUTGO, MOVE}
+    private static final int IOM_INCOME = 1;
+    private static final int IOM_OUTGO = 2;
+    private static final int IOM_MOVE = 3;
 
     private boolean isMove; //資金移動かどうか
 
@@ -106,19 +109,23 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //addButtonでeditMoneyにフォーカス当てる
-        ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view -> {
-            editMoney.requestFocus();
-        });
+        ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view ->
+                editMoney.requestFocus());
 
         btn_in.setOnTouchListener(ioButtonFlick);
         btn_out.setOnTouchListener(ioButtonFlick);
 
         //別スレッドにしたい
         //spinnerにwalletを設定する
-        new Thread().start();
-        String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
-        spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
-        spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+        handler = new Handler(Looper.getMainLooper());
+        new Thread(()->{
+            String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
+            handler.post(()->{
+                spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+                spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+
+            });
+        }).start();
         setTodaySum();
         readData();
         db.close();
@@ -153,14 +160,15 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("up", getIdName(view));
                 if (isInButton) {
                     Log.d("up", "inButton");
-                    iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, null);
+                    iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, null);
                 } else {
                     Log.d("up", "outButton");
                     //genre設定してiomButton
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     String[] item = MoneySetting.getList(this, isIncome?0:1);
                     builder.setTitle(R.string.select_genre)
-                            .setItems(item, (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM.INCOME : IOM.OUTGO, item[i])
+                            .setItems(item, (dialogInterface, i) ->
+                                    MainActivity.this.iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, item[i])
                             ).show();
                 }
                 btn.setText(isIncome ? R.string.button_income : R.string.button_outgo);
@@ -178,13 +186,13 @@ public class MainActivity extends AppCompatActivity {
      * @param iom enum IOM
      * @param genre nullable
      */
-    public void iomButton(IOM iom , @Nullable String genre){
+    public void iomButton(int iom , @Nullable String genre){
         //genreがnullのとき空文字列にする
         if(genre==null)genre = "";
 
         Log.i("iomButton", "Button " +
-                ( iom == IOM.INCOME ? "income"
-                : iom == IOM.OUTGO ? "outgo"
+                ( iom == IOM_INCOME ? "income"
+                : iom == IOM_OUTGO ? "outgo"
                 : /*iom==IOM.MOVE*/ "move")
                 + " pushed");
         String money = editMoney.getText().toString();
@@ -204,25 +212,25 @@ public class MainActivity extends AppCompatActivity {
 
             //収入支出 資金移動from側の書き込み
             ContentValues cv = new ContentValues();
-            if(iom==IOM.INCOME)cv.put("income", money);
-            if(iom==IOM.OUTGO)cv.put("outgo", money);
+            if(iom==IOM_INCOME)cv.put("income", money);
+            if(iom==IOM_OUTGO)cv.put("outgo", money);
             //MOVEはinout欄には書かない
 
             int balance = MoneyTable.getBalanceOf(this, wallet);
-            if(iom==IOM.INCOME){
+            if(iom==IOM_INCOME){
                 cv.put("balance", balance + intMoney);
             }else{
                 cv.put("balance", balance - intMoney);
             }
 
             cv.put("wallet", wallet);
-            cv.put("genre", iom==IOM.MOVE ? text_move : genre.isEmpty() ? "" : genre);
-            cv.put("note", iom==IOM.MOVE ? "-"+money : note);
+            cv.put("genre", iom==IOM_MOVE ? text_move : genre.isEmpty() ? "" : genre);
+            cv.put("note", iom==IOM_MOVE ? "-"+money : note);
             db.insert(MoneyTable.getTodayTableName(), null, cv);
             Log.d("iomButton", cv.toString());
 
             //資金移動toの書き込み
-            if(iom == IOM.MOVE){
+            if(iom == IOM_MOVE){
                 cv.clear();
 
                 balance = MoneyTable.getBalanceOf(this, wallet2);
@@ -292,7 +300,7 @@ public class MainActivity extends AppCompatActivity {
         if(isMove){
             //正常処理
 //            Log.d("movedo", "do Move");
-            iomButton(IOM.MOVE, null);
+            iomButton(IOM_MOVE, null);
 
             fromMove();
         }
@@ -355,7 +363,6 @@ public class MainActivity extends AppCompatActivity {
     private void readData(){
 //        TODO: Thread
 //        https://qiita.com/8yabusa/items/f8c9bb7eb81175c49e97
-        final Handler handler = new Handler(Looper.getMainLooper());
         new Thread(() -> {
 
             SQLiteDatabase db = MoneyTable.newDatabase(this);
@@ -363,7 +370,6 @@ public class MainActivity extends AppCompatActivity {
 
             //読み取り
             cursor.moveToFirst();
-            TextView tv;
 
             int i;
             for (i = 0; i < cursor.getCount(); i++) {
@@ -391,9 +397,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 int ii = i;
-                handler.post(()-> {
-                    setHistoryTable(ii, new String[]{timestamp, status, money, wallet, note});
-                });
+                handler.post(()-> setHistoryTable(ii, new String[]{timestamp, status, money, wallet, note}));
                 cursor.moveToNext();
             }
             for (; i < 5; i++) {
