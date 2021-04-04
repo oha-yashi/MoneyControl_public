@@ -8,13 +8,13 @@
         android:key="show_balance"
         android:title="残額表示" />
     <Preference
-        android:key="csvExport"
-        android:title="csvエクスポート"
-        android:summary="テキストを共有するのでclipboard経由で貼り付けるなどしてください"/>
+        android:key="export"
+        android:title="エクスポート"
+        android:summary="csv,markdownで共有"/>
     <Preference
         android:key="csvImport"
         android:title="csvインポート"
-        android:summary="csvファイルから読み込みしたい" />
+        android:summary="csvファイルから読み込み" />
     <PreferenceCategory android:title="Delete">
 
         <Preference

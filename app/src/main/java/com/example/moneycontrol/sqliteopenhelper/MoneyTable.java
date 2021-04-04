@@ -1,17 +1,25 @@
 package com.example.moneycontrol.sqliteopenhelper;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 import android.util.Log;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class MoneyTable extends SQLiteOpenHelper {
+
+    private static final int IOM_INCOME = 1;
+    private static final int IOM_OUTGO = 2;
+    private static final int IOM_MOVE = 3;
 
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "MC.db";
@@ -20,7 +28,6 @@ public class MoneyTable extends SQLiteOpenHelper {
             "timestamp DEFAULT (datetime('now','localtime'))", //毎回設定しなくてもこれでタイムスタンプが入る
             "income", "outgo", "balance", "wallet", "genre", "note"
     };
-    private static final boolean isDebug = false;//TODO: getTableNameの切替え。falseにすると可変になる
 
     private static String TABLE_NAME = getTodayTableName(); //ここで一応宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
@@ -28,7 +35,11 @@ public class MoneyTable extends SQLiteOpenHelper {
     public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
 
     public static String getTodayTableName(){
-        return isDebug ? "MoneyDatabase" : "Y"+ Calendar.getInstance().get(Calendar.YEAR) +"M"+(Calendar.getInstance().get(Calendar.MONTH)+1);
+        return getCalendarTableName(Calendar.getInstance());
+    }
+    public static String getCalendarTableName(Calendar calendar){
+        SimpleDateFormat sdf = new SimpleDateFormat("'Y'yyyy'M'MM", Locale.US);
+        return sdf.format(calendar.getTime());
     }
     public static void setTableName(String tablename){
         TABLE_NAME = tablename;
@@ -101,29 +112,22 @@ public class MoneyTable extends SQLiteOpenHelper {
      * 新しくデータベースを渡す。いつもここから。
      * 更新されたテーブル名の存在チェックもする（クエリで処理）
      * @param context this
-     * @param tablename テーブル名
      * @return sqLiteDatabase
      */
-    public static SQLiteDatabase newDatabase(Context context, String tablename){
-        SQLiteDatabase sqLiteDatabase = newDatabase(context);
-        setTableName(tablename);
-        return sqLiteDatabase;
-    }
     public static SQLiteDatabase newDatabase(Context context){
         SQLiteDatabase sqLiteDatabase = new MoneyTable(context).getWritableDatabase();
         sqLiteDatabase.execSQL(SQL_CREATE_QUERY);
-        setTableName(getTodayTableName());
         return  sqLiteDatabase;
     }
 
     /**
-     * テーブルの新しい方から最大lines個SELECT*する
+     * テーブルのTIMESTAMP新しい方から最大lines個SELECT*する
      * @param sqLiteDatabase db
      * @param lines SELECT個数
      * @return Cursor
      */
-    public static Cursor getNewData(SQLiteDatabase sqLiteDatabase, int lines){
-        return sqLiteDatabase.rawQuery("SELECT * FROM "+TABLE_NAME+" ORDER BY _id DESC LIMIT "+lines, null);
+    public static Cursor getNewTimeData(SQLiteDatabase sqLiteDatabase, int lines){
+        return sqLiteDatabase.rawQuery("SELECT * FROM "+TABLE_NAME+" ORDER BY timestamp DESC LIMIT "+lines, null);
     }
 
     /**
@@ -152,11 +156,33 @@ public class MoneyTable extends SQLiteOpenHelper {
                 + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
         Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
         c.moveToFirst();
-        for(int i=0; i<c.getCount(); i++)sum += c.getInt(0);
+        sum = c.getInt(0);
         c.close();
 
         db.close();
         return sum;
+    }
+
+    public static void setWithTime(Context context, Calendar time, int income,
+                                   int outgo, int balance, String wallet, String genre, String note){
+
+        SQLiteDatabase db = newDatabase(context);
+        if(time==null)time = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        String strTime = sdf.format(time.getTime());
+        Log.d("setWithTime", "set timestamp "+strTime);
+
+        ContentValues cv = new ContentValues();
+
+        cv.put("timestamp", strTime);
+        cv.put("income", income);
+        cv.put("outgo", outgo);
+        cv.put("balance", balance);
+        cv.put("wallet", wallet);
+        cv.put("genre", genre);
+        cv.put("note", note);
+
+        db.close();
     }
 }
 

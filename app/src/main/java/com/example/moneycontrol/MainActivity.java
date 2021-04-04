@@ -154,15 +154,15 @@ public class MainActivity extends AppCompatActivity {
                 }
                 break;
             case MotionEvent.ACTION_DOWN:
-                Log.d("down", getIdName(view));
+//                Log.d("down", getIdName(view));
                 break;
             case MotionEvent.ACTION_UP:
-                Log.d("up", getIdName(view));
+//                Log.d("up", getIdName(view));
                 if (isInButton) {
-                    Log.d("up", "inButton");
+//                    Log.d("up", "inButton");
                     iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, null);
                 } else {
-                    Log.d("up", "outButton");
+//                    Log.d("up", "outButton");
                     //genre設定してiomButton
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     String[] item = MoneySetting.getList(this, isIncome?0:1);
@@ -190,11 +190,11 @@ public class MainActivity extends AppCompatActivity {
         //genreがnullのとき空文字列にする
         if(genre==null)genre = "";
 
-        Log.i("iomButton", "Button " +
-                ( iom == IOM_INCOME ? "income"
-                : iom == IOM_OUTGO ? "outgo"
-                : /*iom==IOM.MOVE*/ "move")
-                + " pushed");
+//        Log.i("iomButton", "Button " +
+//                ( iom == IOM_INCOME ? "income"
+//                : iom == IOM_OUTGO ? "outgo"
+//                : /*iom==IOM.MOVE*/ "move")
+//                + " pushed");
         String money = editMoney.getText().toString();
 
         //focusを奪う 背景に移す
@@ -366,7 +366,7 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
 
             SQLiteDatabase db = MoneyTable.newDatabase(this);
-            Cursor cursor = MoneyTable.getNewData(db, 5);
+            Cursor cursor = MoneyTable.getNewTimeData(db, 5);
 
             //読み取り
             cursor.moveToFirst();
@@ -385,11 +385,8 @@ public class MainActivity extends AppCompatActivity {
                 String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
                 String wallet = cursor.getString(5);
                 String note;
-                String g = cursor.getString(6);
-                String n = cursor.getString(7);
-//            TODO: 要る
-                if (g == null) g = "";
-                if (n == null) n = "";
+                String g = cursor.getString(6); if (g == null) g = "";
+                String n = cursor.getString(7); if (n == null) n = "";
                 if (g.isEmpty() || n.isEmpty()) {
                     note = String.format("%s%s", g, n);
                 } else {
@@ -403,7 +400,6 @@ public class MainActivity extends AppCompatActivity {
             for (; i < 5; i++) {
                 int ii = i;
                 handler.post(()->setHistoryTable(ii, null));
-
             }
 
             cursor.close();
