@@ -163,6 +163,19 @@ public class MoneyTable extends SQLiteOpenHelper {
         return sum;
     }
 
+    public static int monthAverage(Context context){
+        int sum = 0;
+        SQLiteDatabase db = newDatabase(context);
+        String INCOME_SUM_QUERY = "SELECT total(outgo) FROM "+TABLE_NAME;
+        Cursor c = db.rawQuery(INCOME_SUM_QUERY, null);
+        c.moveToFirst();
+        sum = c.getInt(0);
+        c.close();
+        db.close();
+        int days = Calendar.getInstance().get(Calendar.DATE);
+        return sum/days;
+    }
+
     public static void setWithTime(Context context, Calendar time, int income,
                                    int outgo, int balance, String wallet, String genre, String note){
 

@@ -13,7 +13,7 @@
     <string name="status_income">△</string>
     <string name="status_outgo">▼</string>
     <string name="table_none">---</string>
-    <string name="today_title">今日の支出</string>
+    <string name="today_title">今日の支出(平均)</string>
     <string name="str_Time">Time</string>
     <string name="str_Status">Status</string>
     <string name="str_Money">Money</string>

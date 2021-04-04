@@ -433,7 +433,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d", MoneyTable.todaySum(this)));}
+    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d (ave. %d)",
+            MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));}
 
     public void settingButton(View v){
         Intent intent = new Intent(this, SettingsActivity.class);
