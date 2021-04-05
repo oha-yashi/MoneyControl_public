@@ -33,6 +33,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Calendar;
 import java.util.Locale;
 
 
@@ -231,16 +232,12 @@ public class MainActivity extends AppCompatActivity {
 
             //資金移動toの書き込み
             if(iom == IOM_MOVE){
-                cv.clear();
-
                 balance = MoneyTable.getBalanceOf(this, wallet2);
-                cv.put("balance", balance+intMoney);
 
-                cv.put("wallet", wallet2);
-                cv.put("genre", text_move);
-                cv.put("note", "+"+money);
-                db.insert(MoneyTable.getTodayTableName(), null, cv);
-                Log.d("iomButton", cv.toString());
+                Calendar calendar = Calendar.getInstance();
+                MoneyTable.insert(this, calendar, null, null,
+                        balance+intMoney, wallet2, text_move, "+"+money);
+
             }
             db.close();
         }
@@ -433,7 +430,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d (ave. %d)",
+    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d (%d)",
             MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));}
 
     public void settingButton(View v){

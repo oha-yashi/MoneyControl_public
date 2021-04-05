@@ -75,7 +75,7 @@ public class SettingsActivity extends AppCompatActivity {
                         .setPositiveButton("削除", (dialogInterface, i) -> {
                             SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
                             sqLiteDatabase.execSQL(MoneyTable.SQL_DELETE_QUERY);
-                            sqLiteDatabase.execSQL(MoneyTable.SQL_CREATE_QUERY);
+                            sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(MoneyTable.getTodayTableName()));
                             new AlertDialog.Builder(requireContext()).setMessage("再起動してください").show();
                         })
                         .setNegativeButton("削除しません", null)
@@ -122,7 +122,7 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(strTime);
                 return false;
             };
-            if (!true) { // TODO: テストしないときここfalse
+            if (true) { // TODO: テストしないときここfalse
 //                prefTest(p);
 /*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
                 String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};
@@ -130,7 +130,23 @@ public class SettingsActivity extends AppCompatActivity {
                     Log.d("testDROP", s);
                     sqLiteDatabase.execSQL("DROP TABLE IF EXISTS "+s);
                 }*/
-                p.setOnPreferenceClickListener(pc);
+//                p.setOnPreferenceClickListener(pc);
+                p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                    @Override
+                    public boolean onPreferenceClick(Preference preference) {
+                        new AlertDialog.Builder(getActivity()).setTitle("test")
+                                .setMessage("テストinsert")
+                                .setPositiveButton("Do", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        MoneyTable.insert(getActivity(),null,
+                                                123,null,999,
+                                                "テストwallet","テストgenre", "テストnote");
+                                    }
+                                }).show();
+                        return false;
+                    }
+                });
             } else {
                 p.setVisible(false);
             }

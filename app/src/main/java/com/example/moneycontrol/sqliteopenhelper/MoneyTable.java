@@ -6,8 +6,10 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.text.TextUtils;
 import android.util.Log;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -31,7 +33,7 @@ public class MoneyTable extends SQLiteOpenHelper {
 
     private static String TABLE_NAME = getTodayTableName(); //ここで一応宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
-    public static final String SQL_CREATE_QUERY = "CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" + String.join(", ", DATABASE_COLUMNS) + ")";
+    public static String QUERY_CREATE(String table_name) {return "CREATE TABLE IF NOT EXISTS " + table_name + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
     public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
 
     public static String getTodayTableName(){
@@ -41,13 +43,10 @@ public class MoneyTable extends SQLiteOpenHelper {
         SimpleDateFormat sdf = new SimpleDateFormat("'Y'yyyy'M'MM", Locale.US);
         return sdf.format(calendar.getTime());
     }
-    public static void setTableName(String tablename){
-        TABLE_NAME = tablename;
-    }
     public static String getExistTableNames(Context context){
-        String GET_TABLENAME_QUERY = "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%'";
+        String QUERY_GET_TABLES = "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%'";
         SQLiteDatabase sqLiteDatabase = newDatabase(context);
-        Cursor cursor = sqLiteDatabase.rawQuery(GET_TABLENAME_QUERY, null);
+        Cursor cursor = sqLiteDatabase.rawQuery(QUERY_GET_TABLES, null);
         StringBuilder stringBuilder = new StringBuilder();
         cursor.moveToFirst();
         for(int i=0; i<cursor.getCount(); i++){
@@ -91,7 +90,7 @@ public class MoneyTable extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         Log.d("SQL", "onCreate");//インストール後初回（データ削除後）だけ動いている
-        db.execSQL(SQL_CREATE_QUERY);
+        db.execSQL(QUERY_CREATE(TABLE_NAME));
     }
 
     @Override
@@ -116,7 +115,7 @@ public class MoneyTable extends SQLiteOpenHelper {
      */
     public static SQLiteDatabase newDatabase(Context context){
         SQLiteDatabase sqLiteDatabase = new MoneyTable(context).getWritableDatabase();
-        sqLiteDatabase.execSQL(SQL_CREATE_QUERY);
+        sqLiteDatabase.execSQL(QUERY_CREATE(TABLE_NAME));
         return  sqLiteDatabase;
     }
 
@@ -176,26 +175,44 @@ public class MoneyTable extends SQLiteOpenHelper {
         return sum/days;
     }
 
-    public static void setWithTime(Context context, Calendar time, int income,
-                                   int outgo, int balance, String wallet, String genre, String note){
-
-        SQLiteDatabase db = newDatabase(context);
-        if(time==null)time = Calendar.getInstance();
+    /**
+     * insert実行する
+     * calendarで指定された日時を基に書き込み先テーブルも決まる
+     * @param context this
+     * @param calendar Nullable timestamp
+     * @param income Nullable income
+     * @param outgo Nullable outgo
+     * @param balance NotNull balance
+     * @param wallet wallet
+     * @param genre genre
+     * @param note note
+     */
+    public static void insert(Context context, @Nullable Calendar calendar, @Nullable Integer income,
+                              @Nullable Integer outgo, @NotNull Integer balance, String wallet, String genre, String note){
+        if(calendar ==null) calendar = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        String strTime = sdf.format(time.getTime());
-        Log.d("setWithTime", "set timestamp "+strTime);
+        String strTime = sdf.format(calendar.getTime());
+        String calendarTableName = getCalendarTableName(calendar);
+        new Thread(() -> {
+            SQLiteDatabase db = newDatabase(context);
 
-        ContentValues cv = new ContentValues();
+            Log.d("setWithTime", "set timestamp "+strTime);
 
-        cv.put("timestamp", strTime);
-        cv.put("income", income);
-        cv.put("outgo", outgo);
-        cv.put("balance", balance);
-        cv.put("wallet", wallet);
-        cv.put("genre", genre);
-        cv.put("note", note);
+            ContentValues cv = new ContentValues();
+            cv.put("timestamp", strTime);
+            cv.put("income", income);
+            cv.put("outgo", outgo);
+            cv.put("balance", balance);
+            cv.put("wallet", wallet);
+            cv.put("genre", genre);
+            cv.put("note", note);
 
-        db.close();
+            db.execSQL(QUERY_CREATE(calendarTableName));
+            db.insert(calendarTableName, null, cv);
+
+            db.close();
+        }).start();
+
     }
 }
 

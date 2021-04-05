@@ -91,11 +91,11 @@ public class readCSV extends Activity {
                     // 1行目の読み込み
                     if(line.equals(MoneyTable.getColumnsJoined())){
                         // 対応したファイル
-                        Toast.makeText(this, "読み込みます", Toast.LENGTH_SHORT);
+                        Toast.makeText(this, "読み込みます", Toast.LENGTH_SHORT).show();
                         isFirstLine = false;
                     }else{
                         // 不正なファイル
-                        Toast.makeText(this, "不正なファイルです", Toast.LENGTH_SHORT);
+                        Toast.makeText(this, "不正なファイルです", Toast.LENGTH_SHORT).show();
                         sqLiteDatabase.close();
                         return false;
                     }
@@ -110,6 +110,9 @@ public class readCSV extends Activity {
                 }
                 //end while
             }
+        }
+        catch (Exception e){
+            Log.d("Error", e.toString());
         }
         new AlertDialog.Builder(this).setTitle("End readCSV")
                 .setMessage("再起動してください").show();
