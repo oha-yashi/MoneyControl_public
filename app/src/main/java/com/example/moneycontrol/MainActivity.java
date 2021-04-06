@@ -32,6 +32,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Text;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -382,9 +383,9 @@ public class MainActivity extends AppCompatActivity {
                 String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
                 String wallet = cursor.getString(5);
                 String note;
-                String g = cursor.getString(6); if (g == null) g = "";
-                String n = cursor.getString(7); if (n == null) n = "";
-                if (g.isEmpty() || n.isEmpty()) {
+                String g = cursor.getString(6).trim();
+                String n = cursor.getString(7).trim();
+                if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
                     note = String.format("%s%s", g, n);
                 } else {
                     note = String.format("%s : %s", g, n);

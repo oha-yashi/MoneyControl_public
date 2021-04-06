@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
 import android.widget.TableLayout;
@@ -44,7 +45,7 @@ public class setting_showall extends AppCompatActivity {
             for(int i=0; i<c.getCount(); i++){
                 TableRow tr = new TableRow(this);
 
-                for(int j=1; j<=5; j++){
+                for(int j=0; j<=5; j++){
                     tv = new TextView(this);
                     String getS = c.getString(j);
                     tv.setText(getS==null?"":getS);
@@ -61,12 +62,10 @@ public class setting_showall extends AppCompatActivity {
 
                 tv = new TextView(this);
                 String note;
-                String g = c.getString(6);
-                String n = c.getString(7);
-//                TODO: 要る
-                if(g==null)g="";
-                if(n==null)n="";
-                if(g.isEmpty() || n.isEmpty()){
+                String g = c.getString(6).trim();
+                String n = c.getString(7).trim();
+//                空白判定はTextUtils.isEmptyでOK
+                if(TextUtils.isEmpty(g) || TextUtils.isEmpty(n)){
                     note = String.format("%s%s", g, n);
                 }else{
                     note = String.format("%s : %s", g, n);

@@ -73,7 +73,7 @@ public class MoneySetting extends SQLiteOpenHelper {
      *
      * @param context this
      * @param item INCOME = 0, OUTGO = 1, WALLET = 2;
-     * @return
+     * @return 要素一覧
      */
     public static String[] getList(Context context, int item){
         List<String> list = new ArrayList<>();

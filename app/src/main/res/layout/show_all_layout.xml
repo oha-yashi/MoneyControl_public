@@ -36,11 +36,20 @@
                     android:id="@+id/tableALL"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:stretchColumns="5">
+                    android:stretchColumns="6">
 
                     <TableRow
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
+
+                        <TextView
+                            android:id="@+id/textView_"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal"
+                            android:padding="3dp"
+                            android:text="id"
+                            android:textColor="@color/black" />
 
                         <TextView
                             android:id="@+id/textView"
@@ -133,6 +142,12 @@
 
                         <View
                             android:id="@+id/view6"
+                            android:layout_width="match_parent"
+                            android:layout_height="2dp"
+                            android:foreground="@color/black" />
+
+                        <View
+                            android:id="@+id/view7"
                             android:layout_width="match_parent"
                             android:layout_height="2dp"
                             android:foreground="@color/black" />
