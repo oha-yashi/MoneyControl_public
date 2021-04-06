@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -27,7 +28,7 @@ import java.util.Locale;
 
 
 public class SettingsActivity extends AppCompatActivity {
-    private Handler handler;
+    private static Handler handler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,30 +53,27 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
             findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getContext(), setting_showall.class));
+                startActivity(new Intent(getActivity(), setting_showall.class));
                 return false;
             });
             findPreference("show_balance").setOnPreferenceClickListener(preference -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                CharSequence[] walletList = MoneySetting.getList(requireContext(), MoneySetting.WALLET);
-                builder.setTitle("残額表示")
-                        .setItems(walletList, (dialogInterface, i) -> {
-                            AlertDialog.Builder builder1 = new AlertDialog.Builder(requireContext());
-                            String getWallet = (String) walletList[i];
-                            int getBalance = MoneyTable.getBalanceOf(requireContext(), getWallet);
-                            builder1.setTitle("残額 of " + getWallet)
-                                    .setMessage(getBalance + "円").show();
-                        }).show();
+                CharSequence[] walletList = MoneySetting.getList(getActivity(), MoneySetting.WALLET);
+                new AlertDialog.Builder(getActivity()).setTitle("残額表示")
+                        .setSingleChoiceItems(walletList, -1, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                Toast.makeText(getActivity(), MoneyTable.getBalanceOf(getActivity(),walletList[i].toString())+"円", Toast.LENGTH_SHORT).show();
+                            }
+                        }).setNeutralButton("閉じる", null).show();
                 return false;
             });
-            findPreference("show_balance").setSummary("各walletの残高を表示します");
             findPreference("delete").setOnPreferenceClickListener((preference) -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                builder.setTitle("テーブル全削除").setMessage("取り消しできません 消去しますか？")
+                String tableName = MoneyTable.getTodayTableName();
+                new AlertDialog.Builder(getActivity()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")
                         .setPositiveButton("削除", (dialogInterface, i) -> {
                             SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
-                            sqLiteDatabase.execSQL(MoneyTable.SQL_DELETE_QUERY);
-                            sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(MoneyTable.getTodayTableName()));
+                            sqLiteDatabase.execSQL(MoneyTable.QUERY_DELETE(tableName));
+                            sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(tableName));
                         })
                         .setNegativeButton("削除しません", null)
                         .show();
@@ -108,9 +106,12 @@ public class SettingsActivity extends AppCompatActivity {
                 return false;
             });
 
-            findPreference("database_table").setSummary(MoneyTable.getTodayTableName());
-
-            findPreference("prefTest").setSummary(MoneyTable.getColumnsJoined());
+            new Thread(()->{
+                String getTodayTableName = MoneyTable.getTodayTableName();
+                handler.post(()->{
+                    findPreference("database_table").setSummary(getTodayTableName);
+                });
+            }).start();
 
 //            テストスペース
             Preference p = findPreference("prefTest");
@@ -121,7 +122,7 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(strTime);
                 return false;
             };
-            if (true) { // TODO: テストしないときここfalse
+            if (!true) { // TODO: テストしないときここfalse
 //                prefTest(p);
 /*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
                 String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};
@@ -130,7 +131,7 @@ public class SettingsActivity extends AppCompatActivity {
                     sqLiteDatabase.execSQL("DROP TABLE IF EXISTS "+s);
                 }*/
 //                p.setOnPreferenceClickListener(pc);
-                p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            /*    p.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
                     @Override
                     public boolean onPreferenceClick(Preference preference) {
                         new AlertDialog.Builder(getActivity()).setTitle("test")
@@ -145,7 +146,7 @@ public class SettingsActivity extends AppCompatActivity {
                                 }).show();
                         return false;
                     }
-                });
+                });*/
             } else {
                 p.setVisible(false);
             }

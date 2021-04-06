@@ -24,7 +24,6 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -43,7 +42,6 @@ import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Toolbar toolbar;
     private EditText editMoney;
     private EditText editMemo;
     private TextView todayOut;
@@ -70,13 +68,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ActionBar actionBar = getSupportActionBar();
-
         editMoney = findViewById(R.id.editMoney);
         editMemo = findViewById(R.id.editMemo);
         todayOut = findViewById(R.id.todayOutgoView);
         spnWallet = findViewById(R.id.spinner);
         spnWallet2 = findViewById(R.id.spinner2);
+        btn_move = findViewById(R.id.moveButton);
 
         isMove = false;
         SQLiteDatabase db = MoneyTable.newDatabase(this);
@@ -86,11 +83,37 @@ public class MainActivity extends AppCompatActivity {
         L_move = findViewById(R.id.moveLayout);
         L_btn  = findViewById(R.id.ioButtonLayout);
         I_arrow = findViewById(R.id.downArrow);
-        //buttonIncome
-        Button btn_in = findViewById(R.id.buttonIncome);
-        //buttonOutgo
-        Button btn_out = findViewById(R.id.buttonOutgo);
-        btn_move = findViewById(R.id.moveButton);
+        ((Button) findViewById(R.id.buttonIncome)).setOnTouchListener(ioButtonFlick);
+        ((Button) findViewById(R.id.buttonOutgo)).setOnTouchListener(ioButtonFlick);
+        btn_move.setOnClickListener(view -> {
+            if(!isMove){
+                isMove = true;
+                L_memo.setVisibility(View.INVISIBLE);
+                L_btn.setVisibility(View.INVISIBLE);
+                L_move.setVisibility(View.VISIBLE);
+                I_arrow.setVisibility(View.VISIBLE);
+                btn_move.setText(R.string.cancel);
+            }else{
+                isMove = false;
+                L_memo.setVisibility(View.VISIBLE);
+                L_btn.setVisibility(View.VISIBLE);
+                L_move.setVisibility(View.INVISIBLE);
+                I_arrow.setVisibility(View.INVISIBLE);
+                btn_move.setText(R.string.button_move);
+            }
+        });
+        ((Button) findViewById(R.id.moveDoButton)).setOnClickListener(view -> {
+            if(isMove){
+                //正常処理
+                iomButton(IOM_MOVE, null);
+                isMove = false;
+                L_memo.setVisibility(View.VISIBLE);
+                L_btn.setVisibility(View.VISIBLE);
+                L_move.setVisibility(View.INVISIBLE);
+                I_arrow.setVisibility(View.INVISIBLE);
+                btn_move.setText(R.string.button_move);
+            }
+        });
 
         /**
          * editText用focusChangeListener
@@ -119,11 +142,6 @@ public class MainActivity extends AppCompatActivity {
         //addButtonでeditMoneyにフォーカス当てる
         ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view ->
                 editMoney.requestFocus());
-
-        btn_in.setOnTouchListener(ioButtonFlick);
-        btn_out.setOnTouchListener(ioButtonFlick);
-
-        //別スレッドにしたい
         //spinnerにwalletを設定する
         handler = new Handler(Looper.getMainLooper());
         new Thread(()->{
@@ -157,7 +175,6 @@ public class MainActivity extends AppCompatActivity {
     @Override public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
             case R.id.menu_to_setting:{
-//                functionButton
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
@@ -266,58 +283,6 @@ public class MainActivity extends AppCompatActivity {
         editMemo.setText("");
     }
 
-
-    /**
-     * レイアウトを資金移動仕様にする
-     */
-    private void toMove(){
-        if(isMove)return;
-        isMove = true;
-        L_memo.setVisibility(View.INVISIBLE);
-        L_btn.setVisibility(View.INVISIBLE);
-        L_move.setVisibility(View.VISIBLE);
-        I_arrow.setVisibility(View.VISIBLE);
-        btn_move.setText(R.string.cancel);
-    }
-
-    /**
-     * レイアウトを通常仕様にもどす
-     */
-    private void fromMove(){
-        if(!isMove)return;
-        isMove = false;
-        L_memo.setVisibility(View.VISIBLE);
-        L_btn.setVisibility(View.VISIBLE);
-        L_move.setVisibility(View.INVISIBLE);
-        I_arrow.setVisibility(View.INVISIBLE);
-        btn_move.setText(R.string.button_move);
-    }
-
-    /**
-     * 資金移動ボタン レイアウトを変えるだけ
-     * @param v view
-     */
-    public void moveButton(View v){
-        if(!isMove){
-            toMove();
-        }else{
-            fromMove();
-        }
-    }
-
-    /**
-     * 資金移動実行ボタン 書き換え処理はここから
-     * @param v view
-     */
-    public void moveDoButton(View v){
-        if(isMove){
-            //正常処理
-            iomButton(IOM_MOVE, null);
-
-            fromMove();
-        }
-    }
-
     /**
      * 直近の項目を削除する
      * @param v view
@@ -373,7 +338,6 @@ public class MainActivity extends AppCompatActivity {
      * done in thread
      */
     private void readData(){
-//        TODO: Thread
 //        https://qiita.com/8yabusa/items/f8c9bb7eb81175c49e97
         new Thread(() -> {
 

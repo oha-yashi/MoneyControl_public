@@ -34,7 +34,7 @@ public class MoneyTable extends SQLiteOpenHelper {
     private static String TABLE_NAME = getTodayTableName(); //ここで一応宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
     public static String QUERY_CREATE(String table_name) {return "CREATE TABLE IF NOT EXISTS " + table_name + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
-    public static final String SQL_DELETE_QUERY = "DROP TABLE " + TABLE_NAME;
+    public static String QUERY_DELETE(String table_name) {return "DROP TABLE " + table_name;}
 
     public static String getTodayTableName(){
         return getCalendarTableName(Calendar.getInstance());
@@ -98,7 +98,7 @@ public class MoneyTable extends SQLiteOpenHelper {
         // アップデート処理
         Log.d("SQL", "Update");
         try{
-            db.execSQL(SQL_DELETE_QUERY);
+            db.execSQL(QUERY_DELETE(getTodayTableName()));
         }
         catch(SQLException e){
             Log.d("UpgradeError", e.toString());

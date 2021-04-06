@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_to_setting"
-        android:title="設定"/>
     <item
         android:id="@+id/menu_reload"
         android:icon="@android:drawable/ic_popup_sync"
         android:title="再読み込み"
         app:showAsAction="ifRoom" />
-<!--    showAsAction#ifRoom : スペースがあったらアプリバーに設置する   -->
+    <item
+        android:id="@+id/menu_to_setting"
+        android:icon="@android:drawable/ic_dialog_info"
+        android:title="設定"
+        app:showAsAction="ifRoom" />
+    <!--    showAsAction#ifRoom : スペースがあったらアプリバーに設置する   -->
 </menu>
