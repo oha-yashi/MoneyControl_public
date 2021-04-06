@@ -76,7 +76,6 @@ public class SettingsActivity extends AppCompatActivity {
                             SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
                             sqLiteDatabase.execSQL(MoneyTable.SQL_DELETE_QUERY);
                             sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(MoneyTable.getTodayTableName()));
-                            new AlertDialog.Builder(requireContext()).setMessage("再起動してください").show();
                         })
                         .setNegativeButton("削除しません", null)
                         .show();

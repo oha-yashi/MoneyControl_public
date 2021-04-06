@@ -17,3 +17,4 @@
 local.properties
 /app/src/androidTest
 /app/src/test
+/app/src/main/res/drawable/ic_search_black_24dp.xml

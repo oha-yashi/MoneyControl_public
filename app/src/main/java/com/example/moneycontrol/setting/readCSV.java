@@ -114,8 +114,6 @@ public class readCSV extends Activity {
         catch (Exception e){
             Log.d("Error", e.toString());
         }
-        new AlertDialog.Builder(this).setTitle("End readCSV")
-                .setMessage("再起動してください").show();
         sqLiteDatabase.close();
         return true;
     }

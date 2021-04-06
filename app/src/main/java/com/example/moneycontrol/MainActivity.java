@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        toolbar = findViewById(R.id.myToolBar); setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
 
         editMoney = findViewById(R.id.editMoney);
@@ -135,14 +134,20 @@ public class MainActivity extends AppCompatActivity {
 
             });
         }).start();
-        setTodaySum();
-        readData();
+        new Thread(reloadInThread).start();
         db.close();
         db_setting.close();
     }
     //End of OnCreate
 
-//    メニュー設定
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        new Thread(reloadInThread).start();
+    }
+
+    //    メニュー設定
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -152,10 +157,14 @@ public class MainActivity extends AppCompatActivity {
     @Override public boolean onOptionsItemSelected(MenuItem item){
         switch(item.getItemId()){
             case R.id.menu_to_setting:{
-//                settingButton
+//                functionButton
                 Intent intent = new Intent(this, SettingsActivity.class);
                 startActivity(intent);
                 return true;
+            }
+            case R.id.menu_reload:{
+                for(int i=0; i<5; i++)setHistoryTable(i,null);
+                new Thread(reloadInThread).start();
             }
             default : return super.onOptionsItemSelected(item);
         }
@@ -441,8 +450,14 @@ public class MainActivity extends AppCompatActivity {
             MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));
     }
 
-    public void settingButton(View v){
-        Intent intent = new Intent(this, SettingsActivity.class);
-        startActivity(intent);
+    private final Runnable reloadInThread = ()->{
+        handler.post(()->{
+            readData();
+            setTodaySum();
+        });
+    };
+    public void functionButton(View v){
+        new AlertDialog.Builder(this).setTitle("ファンクションボタン")
+                .setMessage("いろんな機能をここに入れる").show();
     }
 }
