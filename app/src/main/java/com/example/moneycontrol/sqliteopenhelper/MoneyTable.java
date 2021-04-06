@@ -150,14 +150,12 @@ public class MoneyTable extends SQLiteOpenHelper {
     public static int todaySum(Context context){
         int sum = 0;
         SQLiteDatabase db = newDatabase(context);
-
         String SEARCH_TODAYSUM_QUERY = "select total(outgo) from " + TABLE_NAME
                 + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
         Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
         c.moveToFirst();
         sum = c.getInt(0);
         c.close();
-
         db.close();
         return sum;
     }

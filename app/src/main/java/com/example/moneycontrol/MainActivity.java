@@ -1,7 +1,6 @@
 package com.example.moneycontrol;
 
 import android.annotation.SuppressLint;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,6 +10,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -22,8 +24,10 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.moneycontrol.setting.SettingsActivity;
@@ -33,14 +37,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Text;
 
-import java.util.Calendar;
 import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
 
+    private Toolbar toolbar;
     private EditText editMoney;
     private EditText editMemo;
     private TextView todayOut;
@@ -66,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+//        toolbar = findViewById(R.id.myToolBar); setSupportActionBar(toolbar);
+        ActionBar actionBar = getSupportActionBar();
 
         editMoney = findViewById(R.id.editMoney);
         editMemo = findViewById(R.id.editMemo);
@@ -136,6 +142,26 @@ public class MainActivity extends AppCompatActivity {
     }
     //End of OnCreate
 
+//    メニュー設定
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.mymenu, menu);
+        return true;
+    }
+    @Override public boolean onOptionsItemSelected(MenuItem item){
+        switch(item.getItemId()){
+            case R.id.menu_to_setting:{
+//                settingButton
+                Intent intent = new Intent(this, SettingsActivity.class);
+                startActivity(intent);
+                return true;
+            }
+            default : return super.onOptionsItemSelected(item);
+        }
+    }
+
+
     //inoutボタンのフリック設定
     @SuppressLint("ClickableViewAccessibility")
     private final View.OnTouchListener ioButtonFlick = (view, motionEvent) -> {
@@ -156,20 +182,13 @@ public class MainActivity extends AppCompatActivity {
                     btn.setText(R.string.select_genre);
                 }
                 break;
-            case MotionEvent.ACTION_DOWN:
-//                Log.d("down", getIdName(view));
-                break;
             case MotionEvent.ACTION_UP:
-//                Log.d("up", getIdName(view));
                 if (isInButton) {
-//                    Log.d("up", "inButton");
                     iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, null);
                 } else {
-//                    Log.d("up", "outButton");
                     //genre設定してiomButton
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
                     String[] item = MoneySetting.getList(this, isIncome?0:1);
-                    builder.setTitle(R.string.select_genre)
+                    new AlertDialog.Builder(this).setTitle(R.string.select_genre)
                             .setItems(item, (dialogInterface, i) ->
                                     MainActivity.this.iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, item[i])
                             ).show();
@@ -197,11 +216,8 @@ public class MainActivity extends AppCompatActivity {
 
         new Thread(()->{
         if(!TextUtils.isEmpty(money)){
-//            SQLiteDatabase db = MoneyTable.newDatabase(this);
             int intMoney = Integer.parseInt(money);
-
             String text_move = getString(R.string.button_move);
-
             String wallet = (String) spnWallet.getSelectedItem();
             String wallet2 = (String) spnWallet2.getSelectedItem();
             String note = editMemo.getText().toString();
@@ -230,9 +246,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-//            db.close();
         }
-//        TO DO: insertが別スレッドなので更新できてない : 解決
             handler.post(()->{
                 readData();
                 setTodaySum();

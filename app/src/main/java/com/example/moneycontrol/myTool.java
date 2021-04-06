@@ -4,6 +4,7 @@ import android.database.Cursor;
 
 /**
  * 各class固有でもない、使える関数とかを置いておく
+ * 他のところで使うものなのでpublic宣言すること。
  */
 public class myTool {
     /**
