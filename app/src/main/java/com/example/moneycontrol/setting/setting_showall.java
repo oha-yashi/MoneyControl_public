@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
+import com.example.moneycontrol.myTool;
 
 public class setting_showall extends AppCompatActivity {
     private SQLiteDatabase db;
@@ -62,8 +63,8 @@ public class setting_showall extends AppCompatActivity {
 
                 tv = new TextView(this);
                 String note;
-                String g = c.getString(6).trim();
-                String n = c.getString(7).trim();
+                String g = myTool.getNullableString(c,6);
+                String n = myTool.getNullableString(c,7);
 //                空白判定はTextUtils.isEmptyでOK
                 if(TextUtils.isEmpty(g) || TextUtils.isEmpty(n)){
                     note = String.format("%s%s", g, n);

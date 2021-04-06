@@ -193,7 +193,7 @@ public class MoneyTable extends SQLiteOpenHelper {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         String strTime = sdf.format(calendar.getTime());
         String calendarTableName = getCalendarTableName(calendar);
-        new Thread(() -> {
+//        new Thread(() -> {
             SQLiteDatabase db = newDatabase(context);
 
             Log.d("setWithTime", "set timestamp "+strTime);
@@ -211,7 +211,7 @@ public class MoneyTable extends SQLiteOpenHelper {
             db.insert(calendarTableName, null, cv);
 
             db.close();
-        }).start();
+//        }).start();
 
     }
 }

@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -189,21 +190,14 @@ public class MainActivity extends AppCompatActivity {
      * @param genre nullable
      */
     public void iomButton(int iom , @Nullable String genre){
-        //genreがnullのとき空文字列にする
-        if(genre==null)genre = "";
-
-//        Log.i("iomButton", "Button " +
-//                ( iom == IOM_INCOME ? "income"
-//                : iom == IOM_OUTGO ? "outgo"
-//                : /*iom==IOM.MOVE*/ "move")
-//                + " pushed");
         String money = editMoney.getText().toString();
 
         //focusを奪う 背景に移す
         findViewById(R.id.backGroundLayout).requestFocus();
 
+        new Thread(()->{
         if(!TextUtils.isEmpty(money)){
-            SQLiteDatabase db = MoneyTable.newDatabase(this);
+//            SQLiteDatabase db = MoneyTable.newDatabase(this);
             int intMoney = Integer.parseInt(money);
 
             String text_move = getString(R.string.button_move);
@@ -212,38 +206,39 @@ public class MainActivity extends AppCompatActivity {
             String wallet2 = (String) spnWallet2.getSelectedItem();
             String note = editMemo.getText().toString();
 
-            //収入支出 資金移動from側の書き込み
-            ContentValues cv = new ContentValues();
-            if(iom==IOM_INCOME)cv.put("income", money);
-            if(iom==IOM_OUTGO)cv.put("outgo", money);
-            //MOVEはinout欄には書かない
-
             int balance = MoneyTable.getBalanceOf(this, wallet);
-            if(iom==IOM_INCOME){
-                cv.put("balance", balance + intMoney);
-            }else{
-                cv.put("balance", balance - intMoney);
+
+            switch(iom){
+                case IOM_INCOME:{
+                    MoneyTable.insert(this, null, intMoney, null,
+                            balance+intMoney, wallet, genre, note);
+                    break;
+                }
+                case IOM_OUTGO:{
+                    MoneyTable.insert(this,null,null, intMoney,
+                            balance-intMoney, wallet, genre, note);
+                    break;
+                }
+                case IOM_MOVE:{
+//                    資金移動fromの書き込み
+                    MoneyTable.insert(this, null, null, null,
+                            balance-intMoney, wallet, text_move, "-"+money);
+//                    資金移動toの書き込み
+                    MoneyTable.insert(this, null, null, null,
+                            balance+intMoney, wallet2, text_move, "+"+money);
+                    break;
+                }
             }
 
-            cv.put("wallet", wallet);
-            cv.put("genre", iom==IOM_MOVE ? text_move : genre.isEmpty() ? "" : genre);
-            cv.put("note", iom==IOM_MOVE ? "-"+money : note);
-            db.insert(MoneyTable.getTodayTableName(), null, cv);
-            Log.d("iomButton", cv.toString());
-
-            //資金移動toの書き込み
-            if(iom == IOM_MOVE){
-                balance = MoneyTable.getBalanceOf(this, wallet2);
-
-                Calendar calendar = Calendar.getInstance();
-                MoneyTable.insert(this, calendar, null, null,
-                        balance+intMoney, wallet2, text_move, "+"+money);
-
-            }
-            db.close();
+//            db.close();
         }
-        readData();
-        setTodaySum();
+//        TO DO: insertが別スレッドなので更新できてない : 解決
+            handler.post(()->{
+                readData();
+                setTodaySum();
+            });
+        }).start();
+
         editMoney.setText("");
         editMemo.setText("");
     }
@@ -280,7 +275,6 @@ public class MainActivity extends AppCompatActivity {
      * @param v view
      */
     public void moveButton(View v){
-//        Log.d("move", "button pressed");
         if(!isMove){
             toMove();
         }else{
@@ -293,11 +287,8 @@ public class MainActivity extends AppCompatActivity {
      * @param v view
      */
     public void moveDoButton(View v){
-//        Log.d("moveDo", "button pressed");
-
         if(isMove){
             //正常処理
-//            Log.d("movedo", "do Move");
             iomButton(IOM_MOVE, null);
 
             fromMove();
@@ -309,16 +300,16 @@ public class MainActivity extends AppCompatActivity {
      * @param v view
      */
     public void undoButton(View v){
-//        Log.d("undoButton", "clicked");
         SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this);
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         StringBuilder lastItem = new StringBuilder("|");
         Cursor cursor = sqLiteDatabase.rawQuery(MoneyTable.READ_ALL_QUERY, null);
         cursor.moveToLast();
 
-        //直近が資金移動だったら進める
-        while(cursor.getString(6).equals(getString(R.string.button_move))){
-            cursor.moveToPrevious();
+        String recentGenre = cursor.getString(6); if(recentGenre==null)recentGenre = "";
+        //直近が資金移動だったら2個削除する
+        if(recentGenre.equals(getString(R.string.button_move))){
+            Toast.makeText(this, "資金移動はセットで削除してください\nよろしく。", Toast.LENGTH_LONG).show();
         }
 
         //削除するものが無い
@@ -333,7 +324,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         int id = cursor.getInt(0);
-        for(int i=1; i<=6; i++){
+        for(int i=1; i<=7; i++){
             lastItem.append(cursor.getString(i)).append("|");
         }
         cursor.close();
@@ -383,8 +374,8 @@ public class MainActivity extends AppCompatActivity {
                 String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
                 String wallet = cursor.getString(5);
                 String note;
-                String g = cursor.getString(6).trim();
-                String n = cursor.getString(7).trim();
+                String g = myTool.getNullableString(cursor, 6);
+                String n = myTool.getNullableString(cursor, 7);
                 if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
                     note = String.format("%s%s", g, n);
                 } else {
@@ -431,8 +422,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setTodaySum(){todayOut.setText(String.format(Locale.US, "%d (%d)",
-            MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));}
+    private void setTodaySum(){
+        todayOut.setText(String.format(Locale.US, "%d (%d)",
+            MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));
+    }
 
     public void settingButton(View v){
         Intent intent = new Intent(this, SettingsActivity.class);
