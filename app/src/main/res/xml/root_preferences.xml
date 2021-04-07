@@ -5,10 +5,6 @@
         android:key="show_all_button"
         android:title="全体表示" />
     <Preference
-        android:key="show_balance"
-        android:title="残額表示"
-        android:summary="各walletの残高を表示"/>
-    <Preference
         android:key="export"
         android:title="エクスポート"
         android:summary="csv,markdownで共有"/>

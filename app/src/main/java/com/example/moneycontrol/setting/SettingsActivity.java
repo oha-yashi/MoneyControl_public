@@ -52,21 +52,6 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
-            findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), setting_showall.class));
-                return false;
-            });
-            findPreference("show_balance").setOnPreferenceClickListener(preference -> {
-                CharSequence[] walletList = MoneySetting.getList(getActivity(), MoneySetting.WALLET);
-                new AlertDialog.Builder(getActivity()).setTitle("残額表示")
-                        .setSingleChoiceItems(walletList, -1, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                Toast.makeText(getActivity(), MoneyTable.getBalanceOf(getActivity(),walletList[i].toString())+"円", Toast.LENGTH_SHORT).show();
-                            }
-                        }).setNeutralButton("閉じる", null).show();
-                return false;
-            });
             findPreference("delete").setOnPreferenceClickListener((preference) -> {
                 String tableName = MoneyTable.getTodayTableName();
                 new AlertDialog.Builder(getActivity()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")

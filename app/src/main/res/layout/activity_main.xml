@@ -543,7 +543,6 @@
         android:layout_marginBottom="16dp"
         android:clickable="true"
         android:contentDescription="function"
-        android:onClick="functionButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@android:drawable/ic_menu_preferences" />

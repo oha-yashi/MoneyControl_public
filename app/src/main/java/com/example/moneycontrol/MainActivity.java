@@ -2,6 +2,7 @@ package com.example.moneycontrol;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -142,6 +143,20 @@ public class MainActivity extends AppCompatActivity {
         //addButtonでeditMoneyにフォーカス当てる
         ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view ->
                 editMoney.requestFocus());
+
+//        functionButtonの設定
+        String[] functions = new String[]{"残額表示"};
+        ((FloatingActionButton) findViewById(R.id.functionButton)).setOnClickListener(view -> {
+            new AlertDialog.Builder(this).setTitle("多機能ボタン")
+                    .setItems(functions, (dialogInterface, i) -> {
+                        switch(i){
+                            case 0:checkBalanceDialog(); break;
+                        }
+                    })
+                    .setNeutralButton("閉じる",null)
+                    .show();
+        });
+
         //spinnerにwalletを設定する
         handler = new Handler(Looper.getMainLooper());
         new Thread(()->{
@@ -262,6 +277,12 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case IOM_MOVE:{
+                    if(wallet.equals(wallet2)){
+                        handler.post(()->{
+                            Toast.makeText(this, "同walletへの資金移動は不可!!", Toast.LENGTH_SHORT).show();
+                        });
+                        break;
+                    }
 //                    資金移動fromの書き込み
                     MoneyTable.insert(this, null, null, null,
                             balance-intMoney, wallet, text_move, "-"+money);
@@ -420,8 +441,21 @@ public class MainActivity extends AppCompatActivity {
             setTodaySum();
         });
     };
-    public void functionButton(View v){
-        new AlertDialog.Builder(this).setTitle("ファンクションボタン")
-                .setMessage("いろんな機能をここに入れる").show();
+//    functionButtonに入れる機能
+    private void checkBalanceDialog(){
+        Context context = this;
+        CharSequence[] walletList = MoneySetting.getList(this, MoneySetting.WALLET);
+        new AlertDialog.Builder(this).setTitle("残額表示")
+                .setSingleChoiceItems(walletList, -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        new Thread(()->{
+                            String balance = MoneyTable.getBalanceOf(context, walletList[i].toString()) + "円";
+                            handler.post(()-> {
+                                Toast.makeText(context, balance, Toast.LENGTH_SHORT).show();
+                            });
+                        }).start();
+                    }
+                }).setNeutralButton("閉じる", null).show();
     }
 }
