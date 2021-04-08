@@ -60,7 +60,7 @@ public class MoneySetting extends SQLiteOpenHelper {
         onCreate(sqLiteDatabase);
     }
 
-    public static SQLiteDatabase databaseNullCheck(Context context, @org.jetbrains.annotations.Nullable SQLiteDatabase sqLiteDatabase){
+    public static SQLiteDatabase databaseNullCheck(Context context, @Nullable SQLiteDatabase sqLiteDatabase){
         Log.d(TAG, "nullCheck");
         if(sqLiteDatabase==null){
             return new MoneySetting(context).getWritableDatabase();

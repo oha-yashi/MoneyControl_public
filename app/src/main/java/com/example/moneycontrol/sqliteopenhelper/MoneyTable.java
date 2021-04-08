@@ -1,12 +1,17 @@
 package com.example.moneycontrol.sqliteopenhelper;
 
+import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.example.moneycontrol.MainActivity;
+import com.example.moneycontrol.myTool;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,7 +39,7 @@ public class MoneyTable extends SQLiteOpenHelper {
     private static String TABLE_NAME = getTodayTableName(); //ここで一応宣言時代入ができている。
     public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
     public static String QUERY_CREATE(String table_name) {return "CREATE TABLE IF NOT EXISTS " + table_name + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
-    public static String QUERY_DELETE(String table_name) {return "DROP TABLE " + table_name;}
+    public static String QUERY_DROP(String table_name) {return "DROP TABLE " + table_name;}
 
     public static String getTodayTableName(){
         return getCalendarTableName(Calendar.getInstance());
@@ -98,7 +103,7 @@ public class MoneyTable extends SQLiteOpenHelper {
         // アップデート処理
         Log.d("SQL", "Update");
         try{
-            db.execSQL(QUERY_DELETE(getTodayTableName()));
+            db.execSQL(QUERY_DROP(getTodayTableName()));
         }
         catch(SQLException e){
             Log.d("UpgradeError", e.toString());
@@ -137,7 +142,7 @@ public class MoneyTable extends SQLiteOpenHelper {
      */
     public static int getBalanceOf(Context context, String wallet){
         SQLiteDatabase sqLiteDatabase = newDatabase(context);
-        Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY _id DESC LIMIT 1", new String[]{wallet});
+        Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY timestamp DESC LIMIT 1", new String[]{wallet});
         cursor.moveToFirst();
         //cursor.close(); sqLiteDatabase.close();
         return cursor.getCount()==1 ? cursor.getInt(0) : 0;
@@ -188,13 +193,10 @@ public class MoneyTable extends SQLiteOpenHelper {
     public static void insert(Context context, @Nullable Calendar calendar, @Nullable Integer income,
                               @Nullable Integer outgo, @NotNull Integer balance, String wallet, String genre, String note){
         if(calendar ==null) calendar = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        String strTime = sdf.format(calendar.getTime());
+        String strTime = myTool.calendarToTimestamp(calendar);
         String calendarTableName = getCalendarTableName(calendar);
-//        new Thread(() -> {
+        new Thread(() -> {
             SQLiteDatabase db = newDatabase(context);
-
-            Log.d("setWithTime", "set timestamp "+strTime);
 
             ContentValues cv = new ContentValues();
             cv.put("timestamp", strTime);
@@ -209,8 +211,54 @@ public class MoneyTable extends SQLiteOpenHelper {
             db.insert(calendarTableName, null, cv);
 
             db.close();
-//        }).start();
+        }).start();
 
+    }
+
+    public static int getRecentId(Context context){
+        SQLiteDatabase db = newDatabase(context);
+        String QUERY = "SELECT _id FROM "+getTodayTableName()+" ORDER BY timestamp DESC LIMIT 1";
+        int rtn = -1;
+        try{
+            Cursor cursor = db.rawQuery(QUERY, null);
+            cursor.moveToFirst();
+            rtn = cursor.getInt(0);
+            cursor.close();
+            db.close();
+        }catch (Exception e){Log.d("getRecentId", e.toString());}
+        return rtn;
+    }
+
+    /**
+     * 削除メソッド
+     * @param context
+     * @param id
+     */
+    public static void deleteById(Context context, int id){
+        SQLiteDatabase db = newDatabase(context);
+        String QUERY_DELETE = "DELETE FROM "+ getTodayTableName()+" WHERE _id="+id;
+        try {
+            db.execSQL(QUERY_DELETE);
+        }catch (Exception e){Log.d("deleteById", e.toString());}
+        db.close();
+        Log.d("checkTiming", "deleteById dnd (削除)");
+    }
+
+    public static String toStringTableId(Context context, String tableName, int id){
+        StringBuilder builder = new StringBuilder("|");
+        SQLiteDatabase db = newDatabase(context);
+        try {
+            String QUERY = "SELECT * FROM " + tableName + " WHERE _id=" + id;
+            Cursor cursor = db.rawQuery(QUERY, null);
+            cursor.moveToFirst();
+            for(int i=0; i<cursor.getColumnCount(); i++)builder.append(cursor.getString(i)).append("|");
+            cursor.close();
+        }catch(Exception e){
+            Log.d("toStringTableId", e.toString());
+            builder.append("failed to find id:").append(id).append("|");
+        }
+        db.close();
+        return builder.toString();
     }
 }
 

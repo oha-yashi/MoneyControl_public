@@ -27,7 +27,7 @@
         android:layout_marginTop="24dp"
         android:ems="10"
         android:hint="@string/edit_money"
-        android:inputType="numberSigned"
+        android:inputType="number"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
@@ -64,11 +64,12 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
         android:backgroundTint="#673AB7"
-        android:onClick="undoButton"
         android:text="取り消し"
         app:layout_constraintEnd_toStartOf="@id/spinner"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/editMoney" />
+        app:layout_constraintTop_toBottomOf="@id/editMoney"
+
+        android:visibility="invisible" />
 
     <ImageView
         android:id="@+id/downArrow"

@@ -9,6 +9,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -27,7 +28,6 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.moneycontrol.setting.SettingsActivity;
@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        handler = new Handler(Looper.getMainLooper());
 
         editMoney = findViewById(R.id.editMoney);
         editMemo = findViewById(R.id.editMemo);
@@ -77,44 +78,6 @@ public class MainActivity extends AppCompatActivity {
         btn_move = findViewById(R.id.moveButton);
 
         isMove = false;
-        SQLiteDatabase db = MoneyTable.newDatabase(this);
-        SQLiteDatabase db_setting = MoneySetting.databaseNullCheck(this, null);
-
-        L_memo = findViewById(R.id.memoLayout);
-        L_move = findViewById(R.id.moveLayout);
-        L_btn  = findViewById(R.id.ioButtonLayout);
-        I_arrow = findViewById(R.id.downArrow);
-        ((Button) findViewById(R.id.buttonIncome)).setOnTouchListener(ioButtonFlick);
-        ((Button) findViewById(R.id.buttonOutgo)).setOnTouchListener(ioButtonFlick);
-        btn_move.setOnClickListener(view -> {
-            if(!isMove){
-                isMove = true;
-                L_memo.setVisibility(View.INVISIBLE);
-                L_btn.setVisibility(View.INVISIBLE);
-                L_move.setVisibility(View.VISIBLE);
-                I_arrow.setVisibility(View.VISIBLE);
-                btn_move.setText(R.string.cancel);
-            }else{
-                isMove = false;
-                L_memo.setVisibility(View.VISIBLE);
-                L_btn.setVisibility(View.VISIBLE);
-                L_move.setVisibility(View.INVISIBLE);
-                I_arrow.setVisibility(View.INVISIBLE);
-                btn_move.setText(R.string.button_move);
-            }
-        });
-        ((Button) findViewById(R.id.moveDoButton)).setOnClickListener(view -> {
-            if(isMove){
-                //正常処理
-                iomButton(IOM_MOVE, null);
-                isMove = false;
-                L_memo.setVisibility(View.VISIBLE);
-                L_btn.setVisibility(View.VISIBLE);
-                L_move.setVisibility(View.INVISIBLE);
-                I_arrow.setVisibility(View.INVISIBLE);
-                btn_move.setText(R.string.button_move);
-            }
-        });
 
         /**
          * editText用focusChangeListener
@@ -131,45 +94,83 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         };
-        editMoney.setOnFocusChangeListener(editFC);
-        editMemo.setOnFocusChangeListener(editFC);
 
-        //背景をタッチした時focusを奪う
-        findViewById(R.id.backGroundLayout).setOnTouchListener((view, motionEvent) -> {
-            view.requestFocus();
-            return true;
-        });
+        new Thread(()->{
+            L_memo = findViewById(R.id.memoLayout);
+            L_move = findViewById(R.id.moveLayout);
+            L_btn  = findViewById(R.id.ioButtonLayout);
+            I_arrow = findViewById(R.id.downArrow);
+            ((Button) findViewById(R.id.buttonIncome)).setOnTouchListener(ioButtonFlick);
+            ((Button) findViewById(R.id.buttonOutgo)).setOnTouchListener(ioButtonFlick);
+            btn_move.setOnClickListener(view -> {
+                if(!isMove){
+                    isMove = true;
+                    L_memo.setVisibility(View.INVISIBLE);
+                    L_btn.setVisibility(View.INVISIBLE);
+                    L_move.setVisibility(View.VISIBLE);
+                    I_arrow.setVisibility(View.VISIBLE);
+                    btn_move.setText(R.string.cancel);
+                }else{
+                    isMove = false;
+                    L_memo.setVisibility(View.VISIBLE);
+                    L_btn.setVisibility(View.VISIBLE);
+                    L_move.setVisibility(View.INVISIBLE);
+                    I_arrow.setVisibility(View.INVISIBLE);
+                    btn_move.setText(R.string.button_move);
+                }
+            });
+            ((Button) findViewById(R.id.moveDoButton)).setOnClickListener(view -> {
+                if(isMove){
+                    //正常処理
+                    iomButton(IOM_MOVE, null);
+                    isMove = false;
+                    L_memo.setVisibility(View.VISIBLE);
+                    L_btn.setVisibility(View.VISIBLE);
+                    L_move.setVisibility(View.INVISIBLE);
+                    I_arrow.setVisibility(View.INVISIBLE);
+                    btn_move.setText(R.string.button_move);
+                }
+            });
+            editMoney.setOnFocusChangeListener(editFC);
+            editMemo.setOnFocusChangeListener(editFC);
 
-        //addButtonでeditMoneyにフォーカス当てる
-        ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view ->
-                editMoney.requestFocus());
+            //spinnerにwalletを設定する
+            String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
+//            handler.post(()->{
+                spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+                spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+//            });
+
+            //背景をタッチした時focusを奪う
+            findViewById(R.id.backGroundLayout).setOnTouchListener((view, motionEvent) -> {
+                view.requestFocus();
+                return true;
+            });
+
+            //addButtonでeditMoneyにフォーカス当てる
+            ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view ->
+                    editMoney.requestFocus());
+            Log.d("timing", "end of thread");
+        }).start();
 
 //        functionButtonの設定
-        String[] functions = new String[]{"残額表示"};
+        String[] functions = new String[]{"残額表示", "id削除"};
         ((FloatingActionButton) findViewById(R.id.functionButton)).setOnClickListener(view -> {
             new AlertDialog.Builder(this).setTitle("多機能ボタン")
                     .setItems(functions, (dialogInterface, i) -> {
                         switch(i){
-                            case 0:checkBalanceDialog(); break;
+                            case 0:
+                                fn_checkBalanceDialog(); break;
+                            case 1:{
+                                fn_deleteById(); break;
+                            }
                         }
                     })
                     .setNeutralButton("閉じる",null)
                     .show();
         });
-
-        //spinnerにwalletを設定する
-        handler = new Handler(Looper.getMainLooper());
-        new Thread(()->{
-            String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
-            handler.post(()->{
-                spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
-                spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
-
-            });
-        }).start();
-        new Thread(reloadInThread).start();
-        db.close();
-        db_setting.close();
+        Log.d("timing", "before reload");
+        reload();
     }
     //End of OnCreate
 
@@ -177,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
-        new Thread(reloadInThread).start();
+        reload();
     }
 
     //    メニュー設定
@@ -196,7 +197,8 @@ public class MainActivity extends AppCompatActivity {
             }
             case R.id.menu_reload:{
                 for(int i=0; i<5; i++)setHistoryTable(i,null);
-                new Thread(reloadInThread).start();
+                readData();
+                setTodaySum();
             }
             default : return super.onOptionsItemSelected(item);
         }
@@ -256,44 +258,43 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.backGroundLayout).requestFocus();
 
         new Thread(()->{
-        if(!TextUtils.isEmpty(money)){
-            int intMoney = Integer.parseInt(money);
-            String text_move = getString(R.string.button_move);
-            String wallet = (String) spnWallet.getSelectedItem();
-            String wallet2 = (String) spnWallet2.getSelectedItem();
-            String note = editMemo.getText().toString();
+            if(!TextUtils.isEmpty(money)){
+                int intMoney = Integer.parseInt(money);
+                String text_move = getString(R.string.button_move);
+                String wallet = (String) spnWallet.getSelectedItem();
+                String wallet2 = (String) spnWallet2.getSelectedItem();
+                String note = editMemo.getText().toString();
 
-            int balance = MoneyTable.getBalanceOf(this, wallet);
-
-            switch(iom){
-                case IOM_INCOME:{
-                    MoneyTable.insert(this, null, intMoney, null,
-                            balance+intMoney, wallet, genre, note);
-                    break;
-                }
-                case IOM_OUTGO:{
-                    MoneyTable.insert(this,null,null, intMoney,
-                            balance-intMoney, wallet, genre, note);
-                    break;
-                }
-                case IOM_MOVE:{
-                    if(wallet.equals(wallet2)){
-                        handler.post(()->{
-                            Toast.makeText(this, "同walletへの資金移動は不可!!", Toast.LENGTH_SHORT).show();
-                        });
+                int balance = MoneyTable.getBalanceOf(this, wallet);
+                switch(iom){
+                    case IOM_INCOME:{
+                        MoneyTable.insert(this, null, intMoney, null,
+                                balance+intMoney, wallet, genre, note);
                         break;
                     }
-//                    資金移動fromの書き込み
-                    MoneyTable.insert(this, null, null, null,
-                            balance-intMoney, wallet, text_move, "-"+money);
-//                    資金移動toの書き込み
-                    MoneyTable.insert(this, null, null, null,
-                            balance+intMoney, wallet2, text_move, "+"+money);
-                    break;
+                    case IOM_OUTGO:{
+                        MoneyTable.insert(this,null,null, intMoney,
+                                balance-intMoney, wallet, genre, note);
+                        break;
+                    }
+                    case IOM_MOVE:{
+                        if(wallet.equals(wallet2)){
+                            handler.post(()->{
+                                Toast.makeText(this, "同walletへの資金移動は不可!!", Toast.LENGTH_SHORT).show();
+                            });
+                            break;
+                        }
+    //                    資金移動fromの書き込み
+                        MoneyTable.insert(this, null, null, null,
+                                balance-intMoney, wallet, text_move, "-"+money);
+    //                    資金移動toの書き込み
+                        MoneyTable.insert(this, null, null, null,
+                                balance+intMoney, wallet2, text_move, "+"+money);
+                        break;
+                    }
                 }
-            }
 
-        }
+            }
             handler.post(()->{
                 readData();
                 setTodaySum();
@@ -316,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
         cursor.moveToLast();
 
         String recentGenre = cursor.getString(6); if(recentGenre==null)recentGenre = "";
-        //直近が資金移動だったら2個削除する
+        //直近が資金移動だったら
         if(recentGenre.equals(getString(R.string.button_move))){
             Toast.makeText(this, "資金移動はセットで削除してください\nよろしく。", Toast.LENGTH_LONG).show();
         }
@@ -341,9 +342,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage(lastItem.toString())
                 .setPositiveButton("削除", (dialogInterface, i) -> {
                     Log.d("delete", ""+id+" delete");
-                    final SQLiteDatabase sqlDB = MoneyTable.newDatabase(this);
-                    sqlDB.execSQL("DELETE FROM "+ MoneyTable.getTodayTableName()+" WHERE _id="+id);
-                    sqlDB.close();
+                    MoneyTable.deleteById(this, i);
                     readData();
                     setTodaySum();
                 })
@@ -435,14 +434,15 @@ public class MainActivity extends AppCompatActivity {
             MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));
     }
 
-    private final Runnable reloadInThread = ()->{
-        handler.post(()->{
-            readData();
-            setTodaySum();
-        });
-    };
+    /* handlerに入れたりしない */
+    public void reload(){
+        Log.d("reload", "start");
+        readData();
+        setTodaySum();
+    }
+
 //    functionButtonに入れる機能
-    private void checkBalanceDialog(){
+    private void fn_checkBalanceDialog(){
         Context context = this;
         CharSequence[] walletList = MoneySetting.getList(this, MoneySetting.WALLET);
         new AlertDialog.Builder(this).setTitle("残額表示")
@@ -457,5 +457,31 @@ public class MainActivity extends AppCompatActivity {
                         }).start();
                     }
                 }).setNeutralButton("閉じる", null).show();
+    }
+    private void fn_deleteById(){
+        final Context context = this;
+        final EditText editId = new EditText(context);
+        editId.setText(String.valueOf(MoneyTable.getRecentId(context)));
+        editId.setInputType(InputType.TYPE_CLASS_NUMBER);
+        new AlertDialog.Builder(context).setTitle("id削除").setMessage("直近のID入力ずみ")
+            .setView(editId)
+            .setPositiveButton("OK", (dialogInterface, i) -> {
+                String getId = editId.getText().toString();
+                if(getId==null || getId.isEmpty())return;
+                int intId = Integer.parseInt(getId);
+
+                new AlertDialog.Builder(context).setTitle("削除確認")
+                    .setMessage(MoneyTable.toStringTableId(context, MoneyTable.getTodayTableName(), intId))
+                    .setPositiveButton("削除", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            MoneyTable.deleteById(context, intId);
+                            Log.d("checkTiming", "start reload");
+                            readData();
+                            setTodaySum();
+                        }
+                    }).setNeutralButton("削除しない", null).show();
+
+            }).show();
     }
 }

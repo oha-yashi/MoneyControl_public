@@ -10,7 +10,6 @@ import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -18,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
+import com.example.moneycontrol.myTool;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
@@ -52,12 +51,17 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
+            findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
+                startActivity(new Intent(getContext(), setting_showall.class));
+                return false;
+            });
+
             findPreference("delete").setOnPreferenceClickListener((preference) -> {
                 String tableName = MoneyTable.getTodayTableName();
                 new AlertDialog.Builder(getActivity()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")
                         .setPositiveButton("削除", (dialogInterface, i) -> {
                             SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
-                            sqLiteDatabase.execSQL(MoneyTable.QUERY_DELETE(tableName));
+                            sqLiteDatabase.execSQL(MoneyTable.QUERY_DROP(tableName));
                             sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(tableName));
                         })
                         .setNegativeButton("削除しません", null)
@@ -101,9 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
 //            テストスペース
             Preference p = findPreference("prefTest");
             Preference.OnPreferenceClickListener pc = preference -> {
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-//                SimpleDateFormat sdf = new SimpleDateFormat("'Y'yyyy'M'MM", Locale.US);
-                String strTime = sdf.format(Calendar.getInstance().getTime());
+                String strTime = myTool.calendarToTimestamp(Calendar.getInstance());
                 preference.setSummary(strTime);
                 return false;
             };

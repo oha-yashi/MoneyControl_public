@@ -2,6 +2,12 @@ package com.example.moneycontrol;
 
 import android.database.Cursor;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
+
 /**
  * 各class固有でもない、使える関数とかを置いておく
  * 他のところで使うものなのでpublic宣言すること。
@@ -18,6 +24,17 @@ public class myTool {
         String rtn = cursor.getString(index);
         if(rtn == null) rtn = "";
         else rtn = rtn.trim();
+        return rtn;
+    }
+
+    /**
+     * calendarからSQLite式タイムスタンプに変換
+     * @param calendar
+     * @return timestamp
+     */
+    public static String calendarToTimestamp(@NotNull Calendar calendar){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        String rtn = simpleDateFormat.format(calendar.getTime());
         return rtn;
     }
 }
