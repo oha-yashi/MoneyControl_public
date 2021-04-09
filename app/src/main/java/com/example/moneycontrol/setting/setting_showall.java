@@ -55,7 +55,7 @@ public class setting_showall extends AppCompatActivity {
                         tv.setLayoutParams(LP);
                         tv.setGravity(Gravity.END);
                     }catch (Exception e){
-                        Log.d("setLayoutGravityError", e.toString());
+                        e.printStackTrace();
                     }
 
                     tr.addView(tv);

@@ -197,8 +197,7 @@ public class MainActivity extends AppCompatActivity {
             }
             case R.id.menu_reload:{
                 for(int i=0; i<5; i++)setHistoryTable(i,null);
-                readData();
-                setTodaySum();
+                reload();
             }
             default : return super.onOptionsItemSelected(item);
         }
@@ -295,14 +294,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             }
-            handler.post(()->{
-                readData();
-                setTodaySum();
-            });
+            handler.post(()-> reload());
         }).start();
-
-        editMoney.setText("");
-        editMemo.setText("");
     }
 
     /**
@@ -434,9 +427,10 @@ public class MainActivity extends AppCompatActivity {
             MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));
     }
 
-    /* handlerに入れたりしない */
     public void reload(){
         Log.d("reload", "start");
+        editMoney.getText().clear();
+        editMemo.getText().clear();
         readData();
         setTodaySum();
     }
@@ -472,20 +466,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void fn_deleteById_confirmDialog(int id){
-        new AlertDialog.Builder(this).setTitle("削除確認")
-                .setMessage(MoneyTable.toStringTableId(this, MoneyTable.getTodayTableName(), id))
-                .setPositiveButton("削除", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        new Thread(()->{
-                            MoneyTable.deleteById(MainActivity.this, id);
-                            Log.d("checkTiming", "start reload");
-                            handler.post(()->{
-                                readData();
-                                setTodaySum();
-                            });
-                        }).start();
-                    }
-                }).setNeutralButton("削除しない", null).show();
+        try {
+            String message = MoneyTable.toStringTableId(this, MoneyTable.getTodayTableName(), id);
+
+            new AlertDialog.Builder(this).setTitle("削除確認")
+                    .setMessage(message)
+                    .setPositiveButton("削除", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            new Thread(()->{
+                                MoneyTable.deleteById(MainActivity.this, id);
+                                Log.d("checkTiming", "start reload");
+                                handler.post(()->{
+                                    readData();
+                                    setTodaySum();
+                                });
+                            }).start();
+                        }
+                    }).setNeutralButton("削除しない", null).show();
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+
+
     }
 }

@@ -87,7 +87,7 @@ public class MoneySetting extends SQLiteOpenHelper {
             }
             c.close();
         } catch (Exception e){
-            Log.d("MS#getList", e.toString());
+            e.printStackTrace();
         }
 
     /*    {   //occur resource close Error

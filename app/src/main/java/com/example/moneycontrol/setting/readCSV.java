@@ -112,7 +112,7 @@ public class readCSV extends Activity {
             }
         }
         catch (Exception e){
-            Log.d("Error", e.toString());
+            e.printStackTrace();
         }
         sqLiteDatabase.close();
         return true;

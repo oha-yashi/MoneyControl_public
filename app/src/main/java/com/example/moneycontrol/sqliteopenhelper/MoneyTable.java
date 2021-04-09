@@ -9,6 +9,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.moneycontrol.MainActivity;
 import com.example.moneycontrol.myTool;
@@ -106,7 +107,7 @@ public class MoneyTable extends SQLiteOpenHelper {
             db.execSQL(QUERY_DROP(getTodayTableName()));
         }
         catch(SQLException e){
-            Log.d("UpgradeError", e.toString());
+            e.printStackTrace();
         }
 
         onCreate(db);
@@ -141,12 +142,16 @@ public class MoneyTable extends SQLiteOpenHelper {
      * @return balance of wallet
      */
     public static int getBalanceOf(Context context, String wallet){
-        SQLiteDatabase sqLiteDatabase = newDatabase(context);
-        Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY timestamp DESC LIMIT 1", new String[]{wallet});
-        cursor.moveToFirst();
-        int rtn = cursor.getCount()==1 ? cursor.getInt(0) : 0;
-        cursor.close(); sqLiteDatabase.close();
-        return rtn;
+        int rtn = 0;
+        try(SQLiteDatabase sqLiteDatabase = newDatabase(context)){
+            Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY timestamp DESC LIMIT 1", new String[]{wallet});
+            cursor.moveToFirst();
+            rtn = cursor.getCount()==1 ? cursor.getInt(0) : 0;
+            cursor.close();
+        } catch (Exception e){e.printStackTrace();
+        } finally {
+            return rtn;
+        }
     }
 
     /**
@@ -155,28 +160,33 @@ public class MoneyTable extends SQLiteOpenHelper {
      */
     public static int todaySum(Context context){
         int sum = 0;
-        SQLiteDatabase db = newDatabase(context);
-        String SEARCH_TODAYSUM_QUERY = "select total(outgo) from " + TABLE_NAME
-                + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
-        Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
-        c.moveToFirst();
-        sum = c.getInt(0);
-        c.close();
-        db.close();
-        return sum;
+        try(SQLiteDatabase db = newDatabase(context)){
+            String SEARCH_TODAYSUM_QUERY = "select total(outgo) from " + TABLE_NAME
+                    + " where strftime('%m%d', timestamp) = strftime('%m%d', 'now', 'localtime')";
+            Cursor c = db.rawQuery(SEARCH_TODAYSUM_QUERY, null);
+            c.moveToFirst();
+            sum = c.getInt(0);
+            c.close();
+        } catch(Exception e){e.printStackTrace();
+        } finally {
+            return sum;
+        }
     }
 
     public static int monthAverage(Context context){
         int sum = 0;
-        SQLiteDatabase db = newDatabase(context);
-        String INCOME_SUM_QUERY = "SELECT total(outgo) FROM "+TABLE_NAME;
-        Cursor c = db.rawQuery(INCOME_SUM_QUERY, null);
-        c.moveToFirst();
-        sum = c.getInt(0);
-        c.close();
-        db.close();
-        int days = Calendar.getInstance().get(Calendar.DATE);
-        return sum/days;
+        try(SQLiteDatabase db = newDatabase(context)){
+            String INCOME_SUM_QUERY = "SELECT total(outgo) FROM "+TABLE_NAME;
+            Cursor c = db.rawQuery(INCOME_SUM_QUERY, null);
+            c.moveToFirst();
+            sum = c.getInt(0);
+            c.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }finally {
+            int days = Calendar.getInstance().get(Calendar.DATE);
+            return sum/days;
+        }
     }
 
     /**
@@ -197,21 +207,21 @@ public class MoneyTable extends SQLiteOpenHelper {
         String strTime = myTool.calendarToTimestamp(calendar);
         String calendarTableName = getCalendarTableName(calendar);
         new Thread(() -> {
-            SQLiteDatabase db = newDatabase(context);
+            try (SQLiteDatabase db = newDatabase(context)){
+                ContentValues cv = new ContentValues();
+                cv.put("timestamp", strTime);
+                cv.put("income", income);
+                cv.put("outgo", outgo);
+                cv.put("balance", balance);
+                cv.put("wallet", wallet);
+                cv.put("genre", genre);
+                cv.put("note", note);
 
-            ContentValues cv = new ContentValues();
-            cv.put("timestamp", strTime);
-            cv.put("income", income);
-            cv.put("outgo", outgo);
-            cv.put("balance", balance);
-            cv.put("wallet", wallet);
-            cv.put("genre", genre);
-            cv.put("note", note);
-
-            db.execSQL(QUERY_CREATE(calendarTableName));
-            db.insert(calendarTableName, null, cv);
-
-            db.close();
+                db.execSQL(QUERY_CREATE(calendarTableName));
+                db.insert(calendarTableName, null, cv);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
         }).start();
 
     }
@@ -226,7 +236,7 @@ public class MoneyTable extends SQLiteOpenHelper {
             rtn = cursor.getInt(0);
             cursor.close();
             db.close();
-        }catch (Exception e){Log.d("getRecentId", e.toString());}
+        }catch (Exception e){e.printStackTrace();}
         return rtn;
     }
 
@@ -236,16 +246,22 @@ public class MoneyTable extends SQLiteOpenHelper {
      * @param id
      */
     public static void deleteById(Context context, int id){
-        SQLiteDatabase db = newDatabase(context);
-        String QUERY_DELETE = "DELETE FROM "+ getTodayTableName()+" WHERE _id="+id;
-        try {
+        try(SQLiteDatabase db = newDatabase(context)) {
+            String QUERY_DELETE = "DELETE FROM " + getTodayTableName() + " WHERE _id=" + id;
             db.execSQL(QUERY_DELETE);
-        }catch (Exception e){Log.d("deleteById", e.toString());}
-        db.close();
+        }
         Log.d("checkTiming", "deleteById end (削除)");
     }
 
-    public static String toStringTableId(Context context, String tableName, int id){
+    /**
+     *
+     * @param context
+     * @param tableName
+     * @param id
+     * @return
+     * @throws Exception 存在しないid
+     */
+    public static String toStringTableId(Context context, String tableName, int id) throws Exception {
         StringBuilder builder = new StringBuilder("|");
         SQLiteDatabase db = newDatabase(context);
         try {
@@ -255,8 +271,9 @@ public class MoneyTable extends SQLiteOpenHelper {
             for(int i=0; i<cursor.getColumnCount(); i++)builder.append(cursor.getString(i)).append("|");
             cursor.close();
         }catch(Exception e){
-            Log.d("toStringTableId", e.toString());
+            e.printStackTrace();
             builder.append("failed to find id:").append(id).append("|");
+            throw new Exception("存在しないidです");
         }
         db.close();
         return builder.toString();
