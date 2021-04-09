@@ -63,6 +63,7 @@ public class SettingsActivity extends AppCompatActivity {
                             SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
                             sqLiteDatabase.execSQL(MoneyTable.QUERY_DROP(tableName));
                             sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(tableName));
+                            sqLiteDatabase.close();
                         })
                         .setNegativeButton("削除しません", null)
                         .show();

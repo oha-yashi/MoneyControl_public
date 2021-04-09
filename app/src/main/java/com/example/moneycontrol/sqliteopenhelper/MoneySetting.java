@@ -78,15 +78,27 @@ public class MoneySetting extends SQLiteOpenHelper {
     public static String[] getList(Context context, int item){
         List<String> list = new ArrayList<>();
         String table = TABLE_NAME[item];
-        Cursor c = MoneySetting.databaseNullCheck(context, null).rawQuery(
-                "SELECT name FROM " + table, null
-        );
-        c.moveToFirst();
-        for(int i=0; i<c.getCount(); i++){
-            list.add(c.getString(0));
-            c.moveToNext();
+        try(SQLiteDatabase db = databaseNullCheck(context, null)){
+            Cursor c = db.rawQuery("SELECT name FROM " + table, null);
+            c.moveToFirst();
+            for(int i=0; i<c.getCount(); i++){
+                list.add(c.getString(0));
+                c.moveToNext();
+            }
+            c.close();
+        } catch (Exception e){
+            Log.d("MS#getList", e.toString());
         }
-        c.close();
+
+    /*    {   //occur resource close Error
+            Cursor c = databaseNullCheck(context, null).rawQuery("SELECT name FROM " + table, null);
+            c.moveToFirst();
+            for(int i=0; i<c.getCount(); i++){
+                list.add(c.getString(0));
+                c.moveToNext();
+            }
+            c.close();
+        }*/
         return list.toArray(new String[0]);
     }
 }

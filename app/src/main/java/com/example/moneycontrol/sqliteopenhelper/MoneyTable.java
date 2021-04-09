@@ -144,8 +144,9 @@ public class MoneyTable extends SQLiteOpenHelper {
         SQLiteDatabase sqLiteDatabase = newDatabase(context);
         Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY timestamp DESC LIMIT 1", new String[]{wallet});
         cursor.moveToFirst();
-        //cursor.close(); sqLiteDatabase.close();
-        return cursor.getCount()==1 ? cursor.getInt(0) : 0;
+        int rtn = cursor.getCount()==1 ? cursor.getInt(0) : 0;
+        cursor.close(); sqLiteDatabase.close();
+        return rtn;
     }
 
     /**
@@ -241,7 +242,7 @@ public class MoneyTable extends SQLiteOpenHelper {
             db.execSQL(QUERY_DELETE);
         }catch (Exception e){Log.d("deleteById", e.toString());}
         db.close();
-        Log.d("checkTiming", "deleteById dnd (削除)");
+        Log.d("checkTiming", "deleteById end (削除)");
     }
 
     public static String toStringTableId(Context context, String tableName, int id){

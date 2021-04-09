@@ -443,45 +443,49 @@ public class MainActivity extends AppCompatActivity {
 
 //    functionButtonに入れる機能
     private void fn_checkBalanceDialog(){
-        Context context = this;
         CharSequence[] walletList = MoneySetting.getList(this, MoneySetting.WALLET);
         new AlertDialog.Builder(this).setTitle("残額表示")
                 .setSingleChoiceItems(walletList, -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         new Thread(()->{
-                            String balance = MoneyTable.getBalanceOf(context, walletList[i].toString()) + "円";
-                            handler.post(()-> {
-                                Toast.makeText(context, balance, Toast.LENGTH_SHORT).show();
-                            });
+                            String balance = MoneyTable.getBalanceOf(MainActivity.this, walletList[i].toString()) + "円";
+                            handler.post(()-> Toast.makeText(MainActivity.this, balance, Toast.LENGTH_SHORT).show());
                         }).start();
                     }
                 }).setNeutralButton("閉じる", null).show();
     }
     private void fn_deleteById(){
-        final Context context = this;
-        final EditText editId = new EditText(context);
-        editId.setText(String.valueOf(MoneyTable.getRecentId(context)));
+        final EditText editId = new EditText(this);
+        editId.setText(String.valueOf(MoneyTable.getRecentId(this)));
         editId.setInputType(InputType.TYPE_CLASS_NUMBER);
-        new AlertDialog.Builder(context).setTitle("id削除").setMessage("直近のID入力ずみ")
+        new AlertDialog.Builder(this).setTitle("id削除").setMessage("直近のID入力ずみ")
             .setView(editId)
             .setPositiveButton("OK", (dialogInterface, i) -> {
                 String getId = editId.getText().toString();
                 if(getId==null || getId.isEmpty())return;
                 int intId = Integer.parseInt(getId);
 
-                new AlertDialog.Builder(context).setTitle("削除確認")
-                    .setMessage(MoneyTable.toStringTableId(context, MoneyTable.getTodayTableName(), intId))
-                    .setPositiveButton("削除", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            MoneyTable.deleteById(context, intId);
-                            Log.d("checkTiming", "start reload");
-                            readData();
-                            setTodaySum();
-                        }
-                    }).setNeutralButton("削除しない", null).show();
+                fn_deleteById_confirmDialog(intId);
 
             }).show();
+    }
+
+    private void fn_deleteById_confirmDialog(int id){
+        new AlertDialog.Builder(this).setTitle("削除確認")
+                .setMessage(MoneyTable.toStringTableId(this, MoneyTable.getTodayTableName(), id))
+                .setPositiveButton("削除", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        new Thread(()->{
+                            MoneyTable.deleteById(MainActivity.this, id);
+                            Log.d("checkTiming", "start reload");
+                            handler.post(()->{
+                                readData();
+                                setTodaySum();
+                            });
+                        }).start();
+                    }
+                }).setNeutralButton("削除しない", null).show();
     }
 }
