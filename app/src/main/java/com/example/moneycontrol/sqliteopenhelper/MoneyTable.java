@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.renderscript.ScriptIntrinsicBLAS;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -227,17 +228,18 @@ public class MoneyTable extends SQLiteOpenHelper {
     }
 
     public static int getRecentId(Context context){
-        SQLiteDatabase db = newDatabase(context);
         String QUERY = "SELECT _id FROM "+getTodayTableName()+" ORDER BY timestamp DESC LIMIT 1";
         int rtn = -1;
-        try{
+        try(SQLiteDatabase db = newDatabase(context)){
             Cursor cursor = db.rawQuery(QUERY, null);
             cursor.moveToFirst();
             rtn = cursor.getInt(0);
             cursor.close();
-            db.close();
-        }catch (Exception e){e.printStackTrace();}
-        return rtn;
+        } catch (Exception e){
+            e.printStackTrace();
+        } finally {
+            return rtn;
+        }
     }
 
     /**
@@ -263,8 +265,7 @@ public class MoneyTable extends SQLiteOpenHelper {
      */
     public static String toStringTableId(Context context, String tableName, int id) throws Exception {
         StringBuilder builder = new StringBuilder("|");
-        SQLiteDatabase db = newDatabase(context);
-        try {
+        try (SQLiteDatabase db = newDatabase(context)){
             String QUERY = "SELECT * FROM " + tableName + " WHERE _id=" + id;
             Cursor cursor = db.rawQuery(QUERY, null);
             cursor.moveToFirst();
@@ -275,7 +276,6 @@ public class MoneyTable extends SQLiteOpenHelper {
             builder.append("failed to find id:").append(id).append("|");
             throw new Exception("存在しないidです");
         }
-        db.close();
         return builder.toString();
     }
 }

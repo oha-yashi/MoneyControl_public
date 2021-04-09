@@ -77,16 +77,15 @@ public class readCSV extends Activity {
      * @throws IOException
      */
     private boolean getCsvFromUri(Uri uri) throws IOException {
-        SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this);
         try (InputStream inputStream =
                      getContentResolver().openInputStream(uri);
              BufferedReader reader = new BufferedReader(
-                     new InputStreamReader(Objects.requireNonNull(inputStream)))) {
+                     new InputStreamReader(Objects.requireNonNull(inputStream)));
+             SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this)) {
             String line;
             boolean isFirstLine = true; //これが立っている時はカラム名行の読み込み
             String[] columns = MoneyTable.getColumnsArray();
             while ((line = reader.readLine()) != null) {
-//                stringBuilder.append(line).append("\n");
                 if(isFirstLine){
                     // 1行目の読み込み
                     if(line.equals(MoneyTable.getColumnsJoined())){
@@ -96,7 +95,6 @@ public class readCSV extends Activity {
                     }else{
                         // 不正なファイル
                         Toast.makeText(this, "不正なファイルです", Toast.LENGTH_SHORT).show();
-                        sqLiteDatabase.close();
                         return false;
                     }
                 }else{
@@ -110,11 +108,9 @@ public class readCSV extends Activity {
                 }
                 //end while
             }
-        }
-        catch (Exception e){
+        } catch (Exception e){
             e.printStackTrace();
         }
-        sqLiteDatabase.close();
         return true;
     }
 }

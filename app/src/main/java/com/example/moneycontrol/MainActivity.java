@@ -34,6 +34,7 @@ import com.example.moneycontrol.setting.SettingsActivity;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -279,7 +280,9 @@ public class MainActivity extends AppCompatActivity {
                     case IOM_MOVE:{
                         if(wallet.equals(wallet2)){
                             handler.post(()->{
-                                Toast.makeText(this, "同walletへの資金移動は不可!!", Toast.LENGTH_SHORT).show();
+                                String message = "同walletへの資金移動は不可!!";
+//                                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                                Snackbar.make(findViewById(R.id.backGroundLayout), message, Snackbar.LENGTH_LONG).show();
                             });
                             break;
                         }
@@ -296,54 +299,6 @@ public class MainActivity extends AppCompatActivity {
             }
             handler.post(()-> reload());
         }).start();
-    }
-
-    /**
-     * 直近の項目を削除する
-     * @param v view
-     */
-    public void undoButton(View v){
-        SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(this);
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        StringBuilder lastItem = new StringBuilder("|");
-        Cursor cursor = sqLiteDatabase.rawQuery(MoneyTable.READ_ALL_QUERY, null);
-        cursor.moveToLast();
-
-        String recentGenre = cursor.getString(6); if(recentGenre==null)recentGenre = "";
-        //直近が資金移動だったら
-        if(recentGenre.equals(getString(R.string.button_move))){
-            Toast.makeText(this, "資金移動はセットで削除してください\nよろしく。", Toast.LENGTH_LONG).show();
-        }
-
-        //削除するものが無い
-        if(cursor.getCount()==0 || cursor.isBeforeFirst()){
-            cursor.close();
-            sqLiteDatabase.close();
-//            Log.d("undoButton", "nothing to delete");
-            builder.setTitle("直近項目削除")
-                    .setMessage("削除できる項目がありません")
-                    .setPositiveButton("OK",null)
-                    .show();
-            return;
-        }
-        int id = cursor.getInt(0);
-        for(int i=1; i<=7; i++){
-            lastItem.append(cursor.getString(i)).append("|");
-        }
-        cursor.close();
-        builder.setTitle("直近項目削除")
-                .setMessage(lastItem.toString())
-                .setPositiveButton("削除", (dialogInterface, i) -> {
-                    Log.d("delete", ""+id+" delete");
-                    MoneyTable.deleteById(this, i);
-                    readData();
-                    setTodaySum();
-                })
-                .setNeutralButton("キャンセル", (dialogInterface, i) -> {
-                    //nothing
-                });
-        builder.show();
-        sqLiteDatabase.close();
     }
 
     /**
