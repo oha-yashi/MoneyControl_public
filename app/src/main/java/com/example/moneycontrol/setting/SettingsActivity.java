@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
@@ -138,6 +139,17 @@ public class SettingsActivity extends AppCompatActivity {
             } else {
                 p.setVisible(false);
             }
+
+            findPreference("openSetting").setOnPreferenceClickListener(preference -> {
+                boolean isEnable = Settings.Secure.getInt(getContext().getContentResolver(),
+                        Settings.Global.DEVELOPMENT_SETTINGS_ENABLED , 0) == 1;
+                if(isEnable) {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+                    startActivity(intent);
+                }
+                return false;
+            });
         }
 
         //        テストスペースに、joinedColumnをコピペできるダイアログを出す

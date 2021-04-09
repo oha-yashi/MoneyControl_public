@@ -36,6 +36,9 @@
                 android:data="https://github.com/oha-yashi/MoneyControl_public"/>
         </Preference>
         <Preference
+            android:key="openSetting"
+            android:title="開発者向けオプションの表示"/>
+        <Preference
             android:key="prefTest"
             android:title="テストスペース" />
     </PreferenceCategory>
