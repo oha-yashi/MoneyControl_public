@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--DialogにViewを持たせたいときに使う
+    new AlertDialog.Builder(this)....setNeutralButton("閉じる",null).show();
+    v
+    v
+    v
+    final View v = this.getLayoutInflater().inflate(R.layout.dialog_button_close, null);
+    AlertDialog dialog = new AlertDialog.Builder(this).setView(v)....create();
+    v.findViewById(R.id.dialog_button).setOnClickListener(view -> dialog.dismiss());
+    dialog.show();
+-->
+
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="start">
+
+    <Button
+        android:id="@+id/dialog_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#00FFFFFF"
+        android:text="閉じる"
+        android:textColor="@color/design_default_color_primary"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

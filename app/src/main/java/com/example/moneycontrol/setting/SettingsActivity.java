@@ -141,13 +141,7 @@ public class SettingsActivity extends AppCompatActivity {
             }
 
             findPreference("openSetting").setOnPreferenceClickListener(preference -> {
-                boolean isEnable = Settings.Secure.getInt(getContext().getContentResolver(),
-                        Settings.Global.DEVELOPMENT_SETTINGS_ENABLED , 0) == 1;
-                if(isEnable) {
-                    Intent intent = new Intent();
-                    intent.setAction(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
-                    startActivity(intent);
-                }
+                startActivity(new Intent().setAction(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS));
                 return false;
             });
         }

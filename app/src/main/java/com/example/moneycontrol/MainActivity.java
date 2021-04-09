@@ -64,6 +64,22 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isMove; //資金移動かどうか
 
+    /**
+     * editText用focusChangeListener
+     * フォーカスを得たらキーボードを出す。フォーカスが無くなったら隠す
+     */
+    View.OnFocusChangeListener editFC = new View.OnFocusChangeListener() {
+        @Override
+        public void onFocusChange(View view, boolean isFocused) {
+            InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            if(isFocused){
+                inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
+            }else{
+                inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            }
+        }
+    };
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,29 +96,13 @@ public class MainActivity extends AppCompatActivity {
 
         isMove = false;
 
-        /**
-         * editText用focusChangeListener
-         * フォーカスを得たらキーボードを出す。フォーカスが無くなったら隠す
-         */
-        View.OnFocusChangeListener editFC = new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean isFocused) {
-                InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-                if(isFocused){
-                    inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
-                }else{
-                    inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-                }
-            }
-        };
-
         new Thread(()->{
             L_memo = findViewById(R.id.memoLayout);
             L_move = findViewById(R.id.moveLayout);
             L_btn  = findViewById(R.id.ioButtonLayout);
             I_arrow = findViewById(R.id.downArrow);
-            ((Button) findViewById(R.id.buttonIncome)).setOnTouchListener(ioButtonFlick);
-            ((Button) findViewById(R.id.buttonOutgo)).setOnTouchListener(ioButtonFlick);
+            findViewById(R.id.buttonIncome).setOnTouchListener(ioButtonFlick);
+            findViewById(R.id.buttonOutgo).setOnTouchListener(ioButtonFlick);
             btn_move.setOnClickListener(view -> {
                 if(!isMove){
                     isMove = true;
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
                     btn_move.setText(R.string.button_move);
                 }
             });
-            ((Button) findViewById(R.id.moveDoButton)).setOnClickListener(view -> {
+            findViewById(R.id.moveDoButton).setOnClickListener(view -> {
                 if(isMove){
                     //正常処理
                     iomButton(IOM_MOVE, null);
@@ -149,14 +149,14 @@ public class MainActivity extends AppCompatActivity {
             });
 
             //addButtonでeditMoneyにフォーカス当てる
-            ((FloatingActionButton) findViewById(R.id.addButton)).setOnClickListener(view ->
+            findViewById(R.id.addButton).setOnClickListener(view ->
                     editMoney.requestFocus());
             Log.d("timing", "end of thread");
         }).start();
 
 //        functionButtonの設定
         String[] functions = new String[]{"残額表示", "id削除"};
-        ((FloatingActionButton) findViewById(R.id.functionButton)).setOnClickListener(view -> {
+        findViewById(R.id.functionButton).setOnClickListener(view -> {
             new AlertDialog.Builder(this).setTitle("多機能ボタン")
                     .setItems(functions, (dialogInterface, i) -> {
                         switch(i){
@@ -282,7 +282,7 @@ public class MainActivity extends AppCompatActivity {
                             handler.post(()->{
                                 String message = "同walletへの資金移動は不可!!";
 //                                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                                Snackbar.make(findViewById(R.id.backGroundLayout), message, Snackbar.LENGTH_LONG).show();
+                                Snackbar.make(findViewById(R.id.myCoordinatorLayout), message, Snackbar.LENGTH_LONG).show();
                             });
                             break;
                         }
@@ -391,19 +391,62 @@ public class MainActivity extends AppCompatActivity {
     }
 
 //    functionButtonに入れる機能
+
+    /**
+     * functionButton
+     * 残額表示ダイアログ
+     */
     private void fn_checkBalanceDialog(){
         CharSequence[] walletList = MoneySetting.getList(this, MoneySetting.WALLET);
-        new AlertDialog.Builder(this).setTitle("残額表示")
+        final View v = this.getLayoutInflater().inflate(R.layout.dialog_button_close, null);
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("残額表示")
                 .setSingleChoiceItems(walletList, -1, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         new Thread(()->{
-                            String balance = MoneyTable.getBalanceOf(MainActivity.this, walletList[i].toString()) + "円";
-                            handler.post(()-> Toast.makeText(MainActivity.this, balance, Toast.LENGTH_SHORT).show());
+                            String selected = walletList[i].toString();
+                            String balanceText = "¥"+MoneyTable.getBalanceOf(MainActivity.this, selected);
+                            handler.post(()->
+                                    Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
+                                            .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected))
+                                            .show()
+                            );
                         }).start();
                     }
-                }).setNeutralButton("閉じる", null).show();
+                })
+    //                .setNeutralButton("閉じる", null)
+                .setView(v).create();
+        v.findViewById(R.id.dialog_button).setOnClickListener(view -> dialog.dismiss());
+        dialog.show();
     }
+
+    private void fn_checkBalanceDialog_edit(String wallet){
+        int balanceNow = MoneyTable.getBalanceOf(this, wallet);
+        EditText editText = new EditText(this);
+        editText.setHint("実際の残高");
+        editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+        new AlertDialog.Builder(this).setTitle("残高調整: "+wallet)
+                .setMessage("Data: ¥"+balanceNow+" ->")
+                .setView(editText)
+                .setPositiveButton("実行", (dialogInterface, i) -> {
+                    int balanceNew = myTool.getNullableInt(editText);
+                    int diff = balanceNew - balanceNow;
+                    if(diff==0)return;
+                    new Thread(()->{
+                        MoneyTable.insert(this,null,null,null,balanceNew,wallet,"残高調整",
+                                String.format(Locale.US, "%+d", diff));
+                        handler.post(()->reload());
+                    }).start();
+                })
+                .setNeutralButton("取消", null)
+                .show();
+    }
+
+    /**
+     * functionButton
+     * 削除するidの受付
+     */
     private void fn_deleteById(){
         final EditText editId = new EditText(this);
         editId.setText(String.valueOf(MoneyTable.getRecentId(this)));
@@ -420,6 +463,10 @@ public class MainActivity extends AppCompatActivity {
             }).show();
     }
 
+    /**
+     * 実際に削除するダイアログ
+     * @param id 削除するデータのid
+     */
     private void fn_deleteById_confirmDialog(int id){
         try {
             String message = MoneyTable.toStringTableId(this, MoneyTable.getTodayTableName(), id);

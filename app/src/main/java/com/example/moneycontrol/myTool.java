@@ -1,6 +1,8 @@
 package com.example.moneycontrol;
 
 import android.database.Cursor;
+import android.text.TextUtils;
+import android.widget.EditText;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +27,12 @@ public class myTool {
         if(rtn == null) rtn = "";
         else rtn = rtn.trim();
         return rtn;
+    }
+
+    public static int getNullableInt(EditText editText){
+        String rtn = editText.getText().toString();
+        if(TextUtils.isEmpty(rtn))return 0;
+        else return Integer.parseInt(rtn);
     }
 
     /**
