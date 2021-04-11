@@ -1,22 +1,17 @@
 package com.example.moneycontrol.sqliteopenhelper;
 
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.renderscript.ScriptIntrinsicBLAS;
+import android.os.AsyncTask;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.moneycontrol.MainActivity;
+import androidx.annotation.Nullable;
+
 import com.example.moneycontrol.myTool;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -174,7 +169,7 @@ public class MoneyTable extends SQLiteOpenHelper {
         }
     }
 
-    public static int monthAverage(Context context){
+    public static int monthSum(Context context){
         int sum = 0;
         try(SQLiteDatabase db = newDatabase(context)){
             String INCOME_SUM_QUERY = "SELECT total(outgo) FROM "+TABLE_NAME;
@@ -185,8 +180,38 @@ public class MoneyTable extends SQLiteOpenHelper {
         } catch (Exception e){
             e.printStackTrace();
         }finally {
-            int days = Calendar.getInstance().get(Calendar.DATE);
-            return sum/days;
+            return sum;
+        }
+    }
+
+    public static int monthAverage(int monthSum){
+        int days = Calendar.getInstance().get(Calendar.DATE);
+        return monthSum/days;
+    }
+
+    /**
+     * Insertするのに必要なパラメータ
+     */
+    public static class InsertParams{
+        Calendar calendar;
+        Integer income;
+        Integer outgo;
+        Integer balance;
+        String wallet;
+        String genre;
+        String note;
+
+        public InsertParams(@Nullable Calendar calendar,
+                            @Nullable Integer income, @Nullable Integer outgo, Integer balance,
+                            String wallet, String genre, String note){
+            this.calendar = calendar;
+            if(calendar == null)this.calendar = Calendar.getInstance();
+            this.income = income;
+            this.outgo = outgo;
+            this.balance = balance;
+            this.wallet = wallet;
+            this.genre = genre;
+            this.note = note;
         }
     }
 
@@ -194,36 +219,62 @@ public class MoneyTable extends SQLiteOpenHelper {
      * insert実行する
      * calendarで指定された日時を基に書き込み先テーブルも決まる
      * @param context this
-     * @param calendar Nullable timestamp
-     * @param income Nullable income
-     * @param outgo Nullable outgo
-     * @param balance NotNull balance
-     * @param wallet wallet
-     * @param genre genre
-     * @param note note
+     * @param params InsertParams
      */
-    public static void insert(Context context, @Nullable Calendar calendar, @Nullable Integer income,
-                              @Nullable Integer outgo, @NotNull Integer balance, String wallet, String genre, String note){
-        if(calendar ==null) calendar = Calendar.getInstance();
-        String strTime = myTool.calendarToTimestamp(calendar);
-        String calendarTableName = getCalendarTableName(calendar);
-        new Thread(() -> {
-            try (SQLiteDatabase db = newDatabase(context)){
-                ContentValues cv = new ContentValues();
-                cv.put("timestamp", strTime);
-                cv.put("income", income);
-                cv.put("outgo", outgo);
-                cv.put("balance", balance);
-                cv.put("wallet", wallet);
-                cv.put("genre", genre);
-                cv.put("note", note);
+    public static void insert(Context context, InsertParams params) throws Exception {
+        String strTime = myTool.calendarToTimestamp(params.calendar);
+        String calendarTableName = getCalendarTableName(params.calendar);
+        try (SQLiteDatabase db = newDatabase(context)){
+            ContentValues cv = new ContentValues();
+            cv.put("timestamp", strTime);
+            cv.put("income", params.income);
+            cv.put("outgo", params.outgo);
+            cv.put("balance", params.balance);
+            cv.put("wallet", params.wallet);
+            cv.put("genre", params.genre);
+            cv.put("note", params.note);
 
-                db.execSQL(QUERY_CREATE(calendarTableName));
-                db.insert(calendarTableName, null, cv);
-            }catch (Exception e){
-                e.printStackTrace();
+            db.execSQL(QUERY_CREATE(calendarTableName));
+            db.insert(calendarTableName, null, cv);
+            Log.d("timing", "MoneyTable.insert : done");
+        }catch (Exception e){
+            e.printStackTrace();
+            throw new Exception("something is wrong");
+        }
+    }
+
+    public static class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
+        private Listener listener;
+        public interface Listener {
+            void afterInsert();
+        }
+        private Context context;
+
+        public AsyncInsert(Context context, Listener listener) {
+            this.listener = listener;
+            this.context = context;
+            Log.d("AsyncInsert", "make new");
+        }
+
+        @Override
+        protected Boolean doInBackground(InsertParams... insertParams) {
+            for(InsertParams p: insertParams){
+                try {
+                    insert(context, p);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
-        }).start();
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isSuccess){
+            if(listener != null && isSuccess){
+                listener.afterInsert();
+            }
+        }
 
     }
 

@@ -26,6 +26,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -33,12 +35,10 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.example.moneycontrol.setting.SettingsActivity;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
+import java.time.YearMonth;
+import java.util.Calendar;
 import java.util.Locale;
 
 
@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     };
 
-    private String getIdName(@NotNull View v){
+    private String getIdName(@NonNull View v){
         return getResources().getResourceName(v.getId()).split(":id/")[1];
     }
 
@@ -257,48 +257,56 @@ public class MainActivity extends AppCompatActivity {
         //focusを奪う 背景に移す
         findViewById(R.id.backGroundLayout).requestFocus();
 
-        new Thread(()->{
-            if(!TextUtils.isEmpty(money)){
-                int intMoney = Integer.parseInt(money);
-                String text_move = getString(R.string.button_move);
-                String wallet = (String) spnWallet.getSelectedItem();
-                String wallet2 = (String) spnWallet2.getSelectedItem();
-                String note = editMemo.getText().toString();
+        if(!TextUtils.isEmpty(money)){
+            int intMoney = Integer.parseInt(money);
+            String text_move = getString(R.string.button_move);
+            String wallet = (String) spnWallet.getSelectedItem();
+            String wallet2 = (String) spnWallet2.getSelectedItem();
+            String note = editMemo.getText().toString();
 
-                int balance = MoneyTable.getBalanceOf(this, wallet);
-                switch(iom){
-                    case IOM_INCOME:{
-                        MoneyTable.insert(this, null, intMoney, null,
-                                balance+intMoney, wallet, genre, note);
-                        break;
-                    }
-                    case IOM_OUTGO:{
-                        MoneyTable.insert(this,null,null, intMoney,
-                                balance-intMoney, wallet, genre, note);
-                        break;
-                    }
-                    case IOM_MOVE:{
-                        if(wallet.equals(wallet2)){
-                            handler.post(()->{
-                                String message = "同walletへの資金移動は不可!!";
-//                                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                                Snackbar.make(findViewById(R.id.myCoordinatorLayout), message, Snackbar.LENGTH_LONG).show();
-                            });
-                            break;
-                        }
-    //                    資金移動fromの書き込み
-                        MoneyTable.insert(this, null, null, null,
-                                balance-intMoney, wallet, text_move, "-"+money);
-    //                    資金移動toの書き込み
-                        MoneyTable.insert(this, null, null, null,
-                                balance+intMoney, wallet2, text_move, "+"+money);
-                        break;
-                    }
+            int balance = MoneyTable.getBalanceOf(this, wallet);
+            MoneyTable.AsyncInsert asyncInsert = new MoneyTable.AsyncInsert(this, this::reload /* = () -> reload()*/);
+            switch(iom){
+                case IOM_INCOME:{
+//                    MoneyTable.insert(this, null, intMoney, null,
+//                            balance+intMoney, wallet, genre, note);
+                    asyncInsert.execute(new MoneyTable.InsertParams(
+                            null, intMoney, null,
+                            balance+intMoney, wallet, genre, note));
+                    break;
                 }
-
+                case IOM_OUTGO:{
+//                    MoneyTable.insert(this,null,null, intMoney,
+//                            balance-intMoney, wallet, genre, note);
+                    asyncInsert.execute(new MoneyTable.InsertParams(
+                            null,null,intMoney,
+                            balance-intMoney, wallet,genre,note));
+                    break;
+                }
+                case IOM_MOVE:{
+                    if(wallet.equals(wallet2)){
+                        String message = "同walletへの資金移動は不可!!";
+//                                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                        Snackbar.make(findViewById(R.id.myCoordinatorLayout), message, Snackbar.LENGTH_LONG).show();
+                        break;
+                    }
+//                    資金移動fromの書き込み
+//                    MoneyTable.insert(this, new MoneyTable.InsertParams(null, null, null,
+//                            balance-intMoney, wallet, text_move, "-"+money));
+                    MoneyTable.InsertParams moveFromParams = new MoneyTable.InsertParams(
+                            null,null,null,
+                            balance-intMoney,wallet,text_move,"-"+money);
+//                    資金移動toの書き込み
+                    balance = MoneyTable.getBalanceOf(this,wallet2);
+                    MoneyTable.InsertParams moveToParams = new MoneyTable.InsertParams(null, null, null,
+                            balance+intMoney,
+                            wallet2, text_move, "+"+money);
+                    asyncInsert.execute(moveFromParams, moveToParams);
+                    break;
+                }
             }
-            handler.post(()-> reload());
-        }).start();
+
+        }
     }
 
     /**
@@ -378,8 +386,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setTodaySum(){
-        todayOut.setText(String.format(Locale.US, "%d (%d)",
-            MoneyTable.todaySum(this), MoneyTable.monthAverage(this)));
+        int t_sum = MoneyTable.todaySum(this);
+        int m_sum = MoneyTable.monthSum(this);
+        int ave = MoneyTable.monthAverage(m_sum);
+        Calendar c = Calendar.getInstance();
+//        https://stackoverflow.com/questions/8940438/number-of-days-in-particular-month-of-particular-year
+        YearMonth yearMonthObject = YearMonth.of(c.get(Calendar.YEAR), c.get(Calendar.MONTH)+1);
+        int days = yearMonthObject.lengthOfMonth();
+        Log.d("days", String.valueOf(days));
+        todayOut.setText(String.format(Locale.US, "%d (%d→%d)",
+            t_sum, ave, ave*days));
     }
 
     public void reload(){
@@ -433,11 +449,16 @@ public class MainActivity extends AppCompatActivity {
                     int balanceNew = myTool.getNullableInt(editText);
                     int diff = balanceNew - balanceNow;
                     if(diff==0)return;
-                    new Thread(()->{
-                        MoneyTable.insert(this,null,null,null,balanceNew,wallet,"残高調整",
-                                String.format(Locale.US, "%+d", diff));
-                        handler.post(()->reload());
-                    }).start();
+//                    new Thread(()->{
+//                        MoneyTable.insert(this,null,null,null,balanceNew,wallet,"残高調整",
+//                                String.format(Locale.US, "%+d", diff));
+//                        handler.post(()->reload());
+//                    }).start();
+                    new MoneyTable.AsyncInsert(this, this::reload)
+                            .execute(new MoneyTable.InsertParams(
+                                    null,null,null,balanceNew,
+                                    wallet,"残高調整",String.format(Locale.US, "%+d", diff)
+                            ));
                 })
                 .setNeutralButton("取消", null)
                 .show();
