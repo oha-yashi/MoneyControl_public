@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -363,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
 //            money
         tv = new TextView(this);
         tv.setPadding(3, 3, 3, 3);
+        tv.setGravity(Gravity.END);
         if(params.income > 0){
             tv.setText(String.valueOf(params.income));
         }else if(params.outgo > 0){
@@ -372,6 +374,7 @@ public class MainActivity extends AppCompatActivity {
 //            wallet
         tv = new TextView(this);
         tv.setPadding(3, 3, 3, 3);
+        tv.setGravity(Gravity.CENTER);
         tv.setText(params.wallet);
         tr.addView(tv);
 //            note
@@ -390,6 +393,7 @@ public class MainActivity extends AppCompatActivity {
 //            balance
         tv = new TextView(this);
         tv.setPadding(3, 3, 3, 3);
+        tv.setGravity(Gravity.END);
         tv.setText(String.valueOf(params.balance));
         tr.addView(tv);
 
