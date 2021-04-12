@@ -22,7 +22,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TableLayout;
+import android.widget.TableRow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +39,7 @@ import com.example.moneycontrol.setting.SettingsActivity;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.tabs.TabLayout;
 
 import java.time.YearMonth;
 import java.util.Calendar;
@@ -197,7 +201,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
             case R.id.menu_reload:{
-                for(int i=0; i<5; i++)setHistoryTable(i,null);
                 reload();
             }
             default : return super.onOptionsItemSelected(item);
@@ -304,79 +307,93 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 最新最大5件の読み取り
+     * 最新最大件の読み取り
      * done in thread
+     * @param limit
      */
-    private void readData(){
+    private void readData(int limit){
 //        https://qiita.com/8yabusa/items/f8c9bb7eb81175c49e97
 
+        if(limit<5)limit=5;
+
+        int finalLimit = limit;
         new Thread(() -> {
+            final View tableLayout = this.getLayoutInflater().inflate(R.layout.main_table, null);
+            final LinearLayout wrapper = findViewById(R.id.tableWrapper);
+            handler.post(() -> wrapper.addView(tableLayout));
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
-                Cursor cursor = MoneyTable.getNewTimeData(db, 5);
+                Cursor cursor = MoneyTable.getNewTimeData(db, finalLimit);
 
                 //読み取り
                 cursor.moveToFirst();
 
                 int i;
                 for (i = 0; i < cursor.getCount(); i++) {
-                    //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
-
-                    String timestamp = cursor.getString(1).substring(5, 16);
-                    int getIncome = cursor.getInt(2), getOutgo = cursor.getInt(3);
-                    String status;
-                    if (getIncome + getOutgo == 0) status = "";
-                    else if (getIncome > 0) status = getString(R.string.status_income);
-                    else status = getString(R.string.status_outgo);
-
-                    String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
-                    String wallet = cursor.getString(5);
-                    String note;
-                    String g = myTool.getNullableString(cursor, 6);
-                    String n = myTool.getNullableString(cursor, 7);
-                    if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
-                        note = String.format("%s%s", g, n);
-                    } else {
-                        note = String.format("%s : %s", g, n);
-                    }
-
-                    int ii = i;
-                    handler.post(() -> setHistoryTable(ii, new String[]{timestamp, status, money, wallet, note}));
+                    setHistoryTable((TableLayout)tableLayout, new MoneyTable.InsertParams(cursor));
                     cursor.moveToNext();
-                }
-                for (; i < 5; i++) {
-                    int ii = i;
-                    handler.post(() -> setHistoryTable(ii, null));
                 }
 
                 cursor.close();
             }
+            Log.d("readData", "finished");
         }).start();
     }
 
     /**
-     * メイン画面の履歴表示に書き込む
-     * @param i 上からの列数 0-index
-     * @param items String[] {timestamp, status, money, wallet, note(genre+memo)}
+     * メイン画面の履歴表示に書き込む。順に下につながる
+     * @param params 書き込むinsertパラメータ
      */
-    private void setHistoryTable(int i, @Nullable String[] items){
-        String noneTime = getString(R.string.table_none_time);
-        String none = getString(R.string.table_none);
+    private void setHistoryTable(TableLayout tableLayout, MoneyTable.InsertParams params){
+        TableRow tr = new TableRow(this);
         TextView tv;
-
-        if(items!=null && items.length==5){
-            tv = findViewById(getResources().getIdentifier("tableDate"+i, "id", getPackageName()));
-            tv.setText(items[0]);
-            tv = findViewById(getResources().getIdentifier("tableStatus"+i, "id", getPackageName()));
-            tv.setText(items[1]);
-            tv = findViewById(getResources().getIdentifier("tableMoney"+i, "id", getPackageName()));
-            tv.setText(items[2]);
-            tv = findViewById(getResources().getIdentifier("tableWallet"+i, "id", getPackageName()));
-            tv.setText(items[3]);
-            tv = findViewById(getResources().getIdentifier("tableMemo"+i, "id", getPackageName()));
-            tv.setText(items[4]);
-        }else{
-            setHistoryTable(i, new String[] {noneTime, none, none, none, none});
+//            timestamp
+        tv = new TextView(this);
+        tv.setPadding(3, 3, 3, 3);
+        tv.setText(myTool.toTimestamp(params.calendar));
+        tr.addView(tv);
+//            status
+        tv = new TextView(this);
+        tv.setPadding(3, 3, 3, 3);
+        if(params.income > 0){
+            tv.setText(R.string.status_income);
+        }else if(params.outgo > 0){
+            tv.setText(R.string.status_outgo);
         }
+        tr.addView(tv);
+//            money
+        tv = new TextView(this);
+        tv.setPadding(3, 3, 3, 3);
+        if(params.income > 0){
+            tv.setText(String.valueOf(params.income));
+        }else if(params.outgo > 0){
+            tv.setText(String.valueOf(params.outgo));
+        }
+        tr.addView(tv);
+//            wallet
+        tv = new TextView(this);
+        tv.setPadding(3, 3, 3, 3);
+        tv.setText(params.wallet);
+        tr.addView(tv);
+//            note
+        tv = new TextView(this);
+        tv.setPadding(3, 3, 3, 3);
+        String g = params.genre;
+        String n = params.note;
+        String note;
+        if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
+            note = String.format("%s%s", g, n);
+        } else {
+            note = String.format("%s : %s", g, n);
+        }
+        tv.setText(note);
+        tr.addView(tv);
+//            balance
+        tv = new TextView(this);
+        tv.setPadding(3, 3, 3, 3);
+        tv.setText(String.valueOf(params.balance));
+        tr.addView(tv);
+
+        handler.post(()->tableLayout.addView(tr));
     }
 
     private void setTodaySum(){
@@ -396,8 +413,12 @@ public class MainActivity extends AppCompatActivity {
         Log.d("reload", "start");
         editMoney.getText().clear();
         editMemo.getText().clear();
-        readData();
+        spnWallet.setSelection(0);
+        spnWallet2.setSelection(0);
+        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
+        readData(10);
         setTodaySum();
+        Log.d("reload", "end");
     }
 
 //    functionButtonに入れる機能
@@ -495,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
                                 MoneyTable.deleteById(MainActivity.this, id);
                                 Log.d("checkTiming", "start reload");
                                 handler.post(()->{
-                                    readData();
+                                    readData(10);
                                     setTodaySum();
                                 });
                             }).start();

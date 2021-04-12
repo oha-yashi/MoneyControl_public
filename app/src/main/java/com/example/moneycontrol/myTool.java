@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
@@ -28,7 +29,7 @@ public class myTool {
      * @param index
      * @return
      */
-    public static String getNullableString(Cursor cursor, int index) {
+    public static @NonNull String getNullableString(Cursor cursor, int index) {
         String rtn = cursor.getString(index);
         if (rtn == null) rtn = "";
         else rtn = rtn.trim();
@@ -41,15 +42,29 @@ public class myTool {
         else return Integer.parseInt(rtn);
     }
 
+    private static SimpleDateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+
     /**
      * calendarからSQLite式タイムスタンプに変換
-     *
      * @param calendar
      * @return timestamp
      */
     public static String toTimestamp(@NonNull Calendar calendar) {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
-        String rtn = simpleDateFormat.format(calendar.getTime());
+        return timestampFormat.format(calendar.getTime());
+    }
+
+    /**
+     * SQLite式タイムスタンプからcalendarに変換
+     * @param timestamp
+     * @return calendar
+     */
+    public static Calendar toCalendar(@NonNull String timestamp){
+        Calendar rtn = Calendar.getInstance();
+        try {
+            rtn.setTime(timestampFormat.parse(timestamp));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
         return rtn;
     }
 }

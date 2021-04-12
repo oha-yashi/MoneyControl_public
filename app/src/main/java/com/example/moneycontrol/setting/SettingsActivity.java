@@ -109,7 +109,7 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(strTime);
                 return false;
             };
-            if (!true) { // TODO: テストしないときここfalse
+            if (true) { // TODO: テストしないときここfalse
 //                prefTest(p);
 /*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
                 String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};
@@ -134,6 +134,7 @@ public class SettingsActivity extends AppCompatActivity {
                         return false;
                     }
                 });*/
+                p.setSummary(MoneyTable.getExistTableNames(getActivity()));
             } else {
                 p.setVisible(false);
             }
