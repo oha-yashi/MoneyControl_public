@@ -47,7 +47,7 @@ public class myTool {
      * @param calendar
      * @return timestamp
      */
-    public static String calendarToTimestamp(@NonNull Calendar calendar) {
+    public static String toTimestamp(@NonNull Calendar calendar) {
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
         String rtn = simpleDateFormat.format(calendar.getTime());
         return rtn;

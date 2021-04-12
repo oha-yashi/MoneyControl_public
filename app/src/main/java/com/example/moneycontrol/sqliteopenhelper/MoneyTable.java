@@ -212,6 +212,19 @@ public class MoneyTable extends SQLiteOpenHelper {
             this.wallet = wallet;
             this.genre = genre;
             this.note = note;
+//            Log.d("InsertParams", toString());
+        }
+
+        public String toString(){
+            StringBuilder builder = new StringBuilder();
+            builder.append(myTool.toTimestamp(calendar)).append(",")
+                    .append(income).append(",")
+                    .append(outgo).append(",")
+                    .append(balance).append(",")
+                    .append(wallet).append(",")
+                    .append(genre).append(",")
+                    .append(note);
+            return builder.toString();
         }
     }
 
@@ -221,8 +234,8 @@ public class MoneyTable extends SQLiteOpenHelper {
      * @param context this
      * @param params InsertParams
      */
-    public static void insert(Context context, InsertParams params) throws Exception {
-        String strTime = myTool.calendarToTimestamp(params.calendar);
+    private static void insert(Context context, InsertParams params) throws Exception {
+        String strTime = myTool.toTimestamp(params.calendar);
         String calendarTableName = getCalendarTableName(params.calendar);
         try (SQLiteDatabase db = newDatabase(context)){
             ContentValues cv = new ContentValues();
@@ -243,13 +256,21 @@ public class MoneyTable extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * insertを非同期でやるクラス
+     */
     public static class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
-        private Listener listener;
+        private final Listener listener;
         public interface Listener {
             void afterInsert();
         }
-        private Context context;
+        private final Context context;
 
+        /**
+         * コンストラクタ
+         * @param context this
+         * @param listener this::reload
+         */
         public AsyncInsert(Context context, Listener listener) {
             this.listener = listener;
             this.context = context;
@@ -288,9 +309,9 @@ public class MoneyTable extends SQLiteOpenHelper {
             cursor.close();
         } catch (Exception e){
             e.printStackTrace();
-        } finally {
-            return rtn;
         }
+
+        return rtn;
     }
 
     /**

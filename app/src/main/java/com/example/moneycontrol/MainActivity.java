@@ -268,16 +268,12 @@ public class MainActivity extends AppCompatActivity {
             MoneyTable.AsyncInsert asyncInsert = new MoneyTable.AsyncInsert(this, this::reload /* = () -> reload()*/);
             switch(iom){
                 case IOM_INCOME:{
-//                    MoneyTable.insert(this, null, intMoney, null,
-//                            balance+intMoney, wallet, genre, note);
                     asyncInsert.execute(new MoneyTable.InsertParams(
                             null, intMoney, null,
                             balance+intMoney, wallet, genre, note));
                     break;
                 }
                 case IOM_OUTGO:{
-//                    MoneyTable.insert(this,null,null, intMoney,
-//                            balance-intMoney, wallet, genre, note);
                     asyncInsert.execute(new MoneyTable.InsertParams(
                             null,null,intMoney,
                             balance-intMoney, wallet,genre,note));
@@ -291,8 +287,6 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
 //                    資金移動fromの書き込み
-//                    MoneyTable.insert(this, new MoneyTable.InsertParams(null, null, null,
-//                            balance-intMoney, wallet, text_move, "-"+money));
                     MoneyTable.InsertParams moveFromParams = new MoneyTable.InsertParams(
                             null,null,null,
                             balance-intMoney,wallet,text_move,"-"+money);
@@ -315,47 +309,47 @@ public class MainActivity extends AppCompatActivity {
      */
     private void readData(){
 //        https://qiita.com/8yabusa/items/f8c9bb7eb81175c49e97
+
         new Thread(() -> {
+            try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
+                Cursor cursor = MoneyTable.getNewTimeData(db, 5);
 
-            SQLiteDatabase db = MoneyTable.newDatabase(this);
-            Cursor cursor = MoneyTable.getNewTimeData(db, 5);
+                //読み取り
+                cursor.moveToFirst();
 
-            //読み取り
-            cursor.moveToFirst();
+                int i;
+                for (i = 0; i < cursor.getCount(); i++) {
+                    //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
 
-            int i;
-            for (i = 0; i < cursor.getCount(); i++) {
-                //sb.append(cursor.getInt(0)); sb.append(" "); //最初は_idなので読まない
+                    String timestamp = cursor.getString(1).substring(5, 16);
+                    int getIncome = cursor.getInt(2), getOutgo = cursor.getInt(3);
+                    String status;
+                    if (getIncome + getOutgo == 0) status = "";
+                    else if (getIncome > 0) status = getString(R.string.status_income);
+                    else status = getString(R.string.status_outgo);
 
-                String timestamp = cursor.getString(1).substring(5, 16);
-                int getIncome = cursor.getInt(2), getOutgo = cursor.getInt(3);
-                String status;
-                if (getIncome + getOutgo == 0) status = "";
-                else if (getIncome > 0) status = getString(R.string.status_income);
-                else status = getString(R.string.status_outgo);
+                    String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
+                    String wallet = cursor.getString(5);
+                    String note;
+                    String g = myTool.getNullableString(cursor, 6);
+                    String n = myTool.getNullableString(cursor, 7);
+                    if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
+                        note = String.format("%s%s", g, n);
+                    } else {
+                        note = String.format("%s : %s", g, n);
+                    }
 
-                String money = cursor.getInt(2) > 0 ? cursor.getString(2) : cursor.getString(3);
-                String wallet = cursor.getString(5);
-                String note;
-                String g = myTool.getNullableString(cursor, 6);
-                String n = myTool.getNullableString(cursor, 7);
-                if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
-                    note = String.format("%s%s", g, n);
-                } else {
-                    note = String.format("%s : %s", g, n);
+                    int ii = i;
+                    handler.post(() -> setHistoryTable(ii, new String[]{timestamp, status, money, wallet, note}));
+                    cursor.moveToNext();
+                }
+                for (; i < 5; i++) {
+                    int ii = i;
+                    handler.post(() -> setHistoryTable(ii, null));
                 }
 
-                int ii = i;
-                handler.post(()-> setHistoryTable(ii, new String[]{timestamp, status, money, wallet, note}));
-                cursor.moveToNext();
+                cursor.close();
             }
-            for (; i < 5; i++) {
-                int ii = i;
-                handler.post(()->setHistoryTable(ii, null));
-            }
-
-            cursor.close();
-            db.close();
         }).start();
     }
 
@@ -393,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
 //        https://stackoverflow.com/questions/8940438/number-of-days-in-particular-month-of-particular-year
         YearMonth yearMonthObject = YearMonth.of(c.get(Calendar.YEAR), c.get(Calendar.MONTH)+1);
         int days = yearMonthObject.lengthOfMonth();
-        Log.d("days", String.valueOf(days));
+//        Log.d("days", String.valueOf(days));
         todayOut.setText(String.format(Locale.US, "%d (%d→%d)",
             t_sum, ave, ave*days));
     }

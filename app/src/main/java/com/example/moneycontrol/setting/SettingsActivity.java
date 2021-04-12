@@ -22,9 +22,7 @@ import com.example.moneycontrol.myTool;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Locale;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -107,7 +105,7 @@ public class SettingsActivity extends AppCompatActivity {
 //            テストスペース
             Preference p = findPreference("prefTest");
             Preference.OnPreferenceClickListener pc = preference -> {
-                String strTime = myTool.calendarToTimestamp(Calendar.getInstance());
+                String strTime = myTool.toTimestamp(Calendar.getInstance());
                 preference.setSummary(strTime);
                 return false;
             };
