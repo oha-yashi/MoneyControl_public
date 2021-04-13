@@ -69,7 +69,6 @@ public class SettingsActivity extends AppCompatActivity {
                 return false;
             });
 
-
             findPreference("export").setOnPreferenceClickListener(preference -> {
                 String[] list = new String[]{"csv", "markdown"};
                 final int[] selected = {-1};

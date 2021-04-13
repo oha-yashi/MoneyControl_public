@@ -187,67 +187,6 @@ public class MoneyTable extends SQLiteOpenHelper {
         return monthSum/days;
     }
 
-    /**
-     * insert実行する
-     * calendarで指定された日時を基に書き込み先テーブルも決まる
-     * @param context this
-     * @param params InsertParams
-     */
-    private static void insert(Context context, InsertParams params) throws Exception {
-        String calendarTableName = getCalendarTableName(params.calendar);
-        try (SQLiteDatabase db = newDatabase(context)){
-            db.execSQL(QUERY_CREATE(calendarTableName));
-            db.insert(calendarTableName, null, params.toContentValues());
-            Log.d("timing", "MoneyTable.insert : done");
-        }catch (Exception e){
-            e.printStackTrace();
-            throw new Exception("something is wrong");
-        }
-    }
-
-    /**
-     * insertを非同期でやるクラス
-     */
-    public static class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
-        private final Listener listener;
-        public interface Listener {
-            void afterInsert();
-        }
-        private final Context context;
-
-        /**
-         * コンストラクタ
-         * @param context this
-         * @param listener this::reload
-         */
-        public AsyncInsert(Context context, Listener listener) {
-            this.listener = listener;
-            this.context = context;
-            Log.d("AsyncInsert", "make new");
-        }
-
-        @Override
-        protected Boolean doInBackground(InsertParams... insertParams) {
-            for(InsertParams p: insertParams){
-                try {
-                    insert(context, p);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean isSuccess){
-            if(listener != null && isSuccess){
-                listener.afterInsert();
-            }
-        }
-
-    }
-
     public static int getRecentId(Context context){
         String QUERY = "SELECT _id FROM "+getTodayTableName()+" ORDER BY timestamp DESC LIMIT 1";
         int rtn = -1;

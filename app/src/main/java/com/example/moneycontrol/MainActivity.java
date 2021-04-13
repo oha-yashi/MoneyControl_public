@@ -37,6 +37,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.moneycontrol.setting.SettingsActivity;
+import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
 import com.example.moneycontrol.sqliteopenhelper.InsertParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
@@ -269,7 +270,7 @@ public class MainActivity extends AppCompatActivity {
             String note = editMemo.getText().toString();
 
             int balance = MoneyTable.getBalanceOf(this, wallet);
-            MoneyTable.AsyncInsert asyncInsert = new MoneyTable.AsyncInsert(this, this::reload /* = () -> reload()*/);
+            AsyncInsert asyncInsert = new AsyncInsert(this, this::reload /* = () -> reload()*/);
             switch(iom){
                 case IOM_INCOME:{
                     asyncInsert.execute(new InsertParams(
@@ -303,7 +304,6 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
             }
-
         }
     }
 
@@ -465,11 +465,11 @@ public class MainActivity extends AppCompatActivity {
                     int balanceNew = myTool.getNullableInt(editText);
                     int diff = balanceNew - balanceNow;
                     if(diff==0)return;
-                    new MoneyTable.AsyncInsert(this, this::reload)
-                            .execute(new InsertParams(
-                                    null,null,null,balanceNew,
-                                    wallet,"残高調整",String.format(Locale.US, "%+d", diff)
-                            ));
+                        new AsyncInsert(this, this::reload)
+                                .execute(new InsertParams(
+                                        null, null, null, balanceNew,
+                                        wallet, "残高調整", String.format(Locale.US, "%+d", diff)
+                                ));
                 })
                 .setNeutralButton("取消", null)
                 .show();
