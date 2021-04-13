@@ -4,16 +4,24 @@
     <Preference
         android:key="show_all_button"
         android:title="全体表示" />
-    <Preference
-        android:key="export"
-        android:title="エクスポート"
-        android:summary="csv,markdownで共有"/>
-    <Preference
-        android:key="csvImport"
-        android:title="csvインポート"
-        android:summary="csvファイルから読み込み" />
-    <PreferenceCategory android:title="Delete">
 
+    <EditTextPreference
+        android:key="main_readData_limit"
+        android:title="メイン画面データ表示数"
+        app:useSimpleSummaryProvider="true"
+        app:defaultValue="10"
+        />
+
+    <PreferenceCategory android:title="データベース操作">
+
+        <Preference
+            android:key="export"
+            android:title="エクスポート"
+            android:summary="csv,markdownで共有"/>
+        <Preference
+            android:key="csvImport"
+            android:title="csvインポート"
+            android:summary="csvファイルから読み込み" />
         <Preference
             android:key="delete"
             android:title="テーブル削除" />

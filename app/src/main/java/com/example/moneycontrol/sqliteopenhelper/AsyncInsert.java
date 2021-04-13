@@ -1,13 +1,12 @@
 package com.example.moneycontrol.sqliteopenhelper;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
-/**
- * insertを非同期でやるクラス
- */
+@SuppressLint("StaticFieldLeak")
 public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
     private final Listener listener;
     public interface Listener {

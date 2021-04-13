@@ -35,6 +35,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.preference.PreferenceManager;
 
 import com.example.moneycontrol.setting.SettingsActivity;
 import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
@@ -420,7 +421,8 @@ public class MainActivity extends AppCompatActivity {
         spnWallet.setSelection(0);
         spnWallet2.setSelection(0);
         ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
-        readData(10);
+        String strLimit = PreferenceManager.getDefaultSharedPreferences(this).getString("main_readData_limit", "10");
+        readData(Integer.valueOf(strLimit));
         setTodaySum();
         Log.d("reload", "end");
     }

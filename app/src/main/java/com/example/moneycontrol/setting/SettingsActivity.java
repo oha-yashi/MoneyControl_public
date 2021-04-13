@@ -8,13 +8,16 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -54,6 +57,18 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(new Intent(getContext(), setting_showall.class));
                 return false;
             });
+
+            EditTextPreference editReadDataLimit = findPreference("main_readData_limit");
+            if (editReadDataLimit != null) {
+                editReadDataLimit.setOnBindEditTextListener(
+                        new EditTextPreference.OnBindEditTextListener() {
+                            @Override
+                            public void onBindEditText(@NonNull EditText editText) {
+                                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                            }
+                        });
+            }
+
 
             findPreference("delete").setOnPreferenceClickListener((preference) -> {
                 String tableName = MoneyTable.getTodayTableName();
