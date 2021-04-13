@@ -194,20 +194,10 @@ public class MoneyTable extends SQLiteOpenHelper {
      * @param params InsertParams
      */
     private static void insert(Context context, InsertParams params) throws Exception {
-        String strTime = myTool.toTimestamp(params.calendar);
         String calendarTableName = getCalendarTableName(params.calendar);
         try (SQLiteDatabase db = newDatabase(context)){
-            ContentValues cv = new ContentValues();
-            cv.put("timestamp", strTime);
-            cv.put("income", params.income);
-            cv.put("outgo", params.outgo);
-            cv.put("balance", params.balance);
-            cv.put("wallet", params.wallet);
-            cv.put("genre", params.genre);
-            cv.put("note", params.note);
-
             db.execSQL(QUERY_CREATE(calendarTableName));
-            db.insert(calendarTableName, null, cv);
+            db.insert(calendarTableName, null, params.toContentValues());
             Log.d("timing", "MoneyTable.insert : done");
         }catch (Exception e){
             e.printStackTrace();

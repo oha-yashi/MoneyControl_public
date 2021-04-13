@@ -1,5 +1,6 @@
 package com.example.moneycontrol.sqliteopenhelper;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 
 import androidx.annotation.Nullable;
@@ -55,5 +56,17 @@ public class InsertParams {
                 .append(genre).append(",")
                 .append(note);
         return builder.toString();
+    }
+
+    public ContentValues toContentValues(){
+        ContentValues cv = new ContentValues();
+        cv.put("timestamp", myTool.toTimestamp(calendar));
+        cv.put("income", income);
+        cv.put("outgo", outgo);
+        cv.put("balance", balance);
+        cv.put("wallet", wallet);
+        cv.put("genre", genre);
+        cv.put("note", note);
+        return cv;
     }
 }
