@@ -37,10 +37,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.moneycontrol.setting.SettingsActivity;
+import com.example.moneycontrol.sqliteopenhelper.InsertParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.tabs.TabLayout;
 
 import java.time.YearMonth;
 import java.util.Calendar;
@@ -272,13 +272,13 @@ public class MainActivity extends AppCompatActivity {
             MoneyTable.AsyncInsert asyncInsert = new MoneyTable.AsyncInsert(this, this::reload /* = () -> reload()*/);
             switch(iom){
                 case IOM_INCOME:{
-                    asyncInsert.execute(new MoneyTable.InsertParams(
+                    asyncInsert.execute(new InsertParams(
                             null, intMoney, null,
                             balance+intMoney, wallet, genre, note));
                     break;
                 }
                 case IOM_OUTGO:{
-                    asyncInsert.execute(new MoneyTable.InsertParams(
+                    asyncInsert.execute(new InsertParams(
                             null,null,intMoney,
                             balance-intMoney, wallet,genre,note));
                     break;
@@ -291,12 +291,12 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
 //                    資金移動fromの書き込み
-                    MoneyTable.InsertParams moveFromParams = new MoneyTable.InsertParams(
+                    InsertParams moveFromParams = new InsertParams(
                             null,null,null,
                             balance-intMoney,wallet,text_move,"-"+money);
 //                    資金移動toの書き込み
                     balance = MoneyTable.getBalanceOf(this,wallet2);
-                    MoneyTable.InsertParams moveToParams = new MoneyTable.InsertParams(null, null, null,
+                    InsertParams moveToParams = new InsertParams(null, null, null,
                             balance+intMoney,
                             wallet2, text_move, "+"+money);
                     asyncInsert.execute(moveFromParams, moveToParams);
@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
 
                 int i;
                 for (i = 0; i < cursor.getCount(); i++) {
-                    setHistoryTable((TableLayout)tableLayout, new MoneyTable.InsertParams(cursor));
+                    setHistoryTable((TableLayout)tableLayout, new InsertParams(cursor));
                     cursor.moveToNext();
                 }
 
@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity {
      * メイン画面の履歴表示に書き込む。順に下につながる
      * @param params 書き込むinsertパラメータ
      */
-    private void setHistoryTable(TableLayout tableLayout, MoneyTable.InsertParams params){
+    private void setHistoryTable(TableLayout tableLayout, InsertParams params){
         TableRow tr = new TableRow(this);
         TextView tv;
 //            timestamp
@@ -442,15 +442,12 @@ public class MainActivity extends AppCompatActivity {
                         new Thread(()->{
                             String selected = walletList[i].toString();
                             String balanceText = "¥"+MoneyTable.getBalanceOf(MainActivity.this, selected);
-                            handler.post(()->
-                                    Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
-                                            .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected))
-                                            .show()
+                            handler.post(()-> Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
+                                    .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected)).show()
                             );
                         }).start();
                     }
                 })
-    //                .setNeutralButton("閉じる", null)
                 .setView(v).create();
         v.findViewById(R.id.dialog_button).setOnClickListener(view -> dialog.dismiss());
         dialog.show();
@@ -468,13 +465,8 @@ public class MainActivity extends AppCompatActivity {
                     int balanceNew = myTool.getNullableInt(editText);
                     int diff = balanceNew - balanceNow;
                     if(diff==0)return;
-//                    new Thread(()->{
-//                        MoneyTable.insert(this,null,null,null,balanceNew,wallet,"残高調整",
-//                                String.format(Locale.US, "%+d", diff));
-//                        handler.post(()->reload());
-//                    }).start();
                     new MoneyTable.AsyncInsert(this, this::reload)
-                            .execute(new MoneyTable.InsertParams(
+                            .execute(new InsertParams(
                                     null,null,null,balanceNew,
                                     wallet,"残高調整",String.format(Locale.US, "%+d", diff)
                             ));
@@ -519,10 +511,7 @@ public class MainActivity extends AppCompatActivity {
                             new Thread(()->{
                                 MoneyTable.deleteById(MainActivity.this, id);
                                 Log.d("checkTiming", "start reload");
-                                handler.post(()->{
-                                    readData(10);
-                                    setTodaySum();
-                                });
+                                handler.post(()-> reload());
                             }).start();
                         }
                     }).setNeutralButton("削除しない", null).show();

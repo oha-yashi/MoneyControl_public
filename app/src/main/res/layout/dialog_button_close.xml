@@ -11,12 +11,11 @@
     dialog.show();
 -->
 
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="start">
+    android:gravity="start"
+    android:orientation="vertical">
 
     <Button
         android:id="@+id/dialog_button"
@@ -24,6 +23,6 @@
         android:layout_height="wrap_content"
         android:background="#00FFFFFF"
         android:text="閉じる"
-        android:textColor="@color/design_default_color_primary"/>
+        android:textColor="@color/design_default_color_primary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
