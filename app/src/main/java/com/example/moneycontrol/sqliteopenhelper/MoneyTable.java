@@ -19,10 +19,6 @@ import java.util.Locale;
 
 public class MoneyTable extends SQLiteOpenHelper {
 
-    private static final int IOM_INCOME = 1;
-    private static final int IOM_OUTGO = 2;
-    private static final int IOM_MOVE = 3;
-
     private static final int DATABASE_VERSION = 2;
     private static final String DATABASE_NAME = "MC.db";
     private static final String[] DATABASE_COLUMNS = {

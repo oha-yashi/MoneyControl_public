@@ -10,7 +10,7 @@ import com.example.moneycontrol.myTool;
 import java.util.Calendar;
 
 /**
- * Insertするのに必要なパラメータ
+ * Insertするのに必要なパラメータ {calendar, income, outgo, balance, wallet, genre, note}
  */
 public class InsertParams {
     public Calendar calendar;

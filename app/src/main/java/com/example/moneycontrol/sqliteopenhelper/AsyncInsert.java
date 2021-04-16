@@ -6,6 +6,12 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import com.example.moneycontrol.MainActivity;
+
+/**
+ * コンストラクタにはContextと、処理後の動作（リロードを想定）を設定してあげる（static云々でこちらからは引っ張れない）
+ * execute(InsertParams...) 挿入したいデータを可変個受け取って順次処理
+ */
 @SuppressLint("StaticFieldLeak")
 public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
     private final Listener listener;

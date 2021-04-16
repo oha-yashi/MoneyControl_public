@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -205,6 +206,7 @@ public class MainActivity extends AppCompatActivity {
             }
             case R.id.menu_reload:{
                 reload();
+                return true;
             }
             default : return super.onOptionsItemSelected(item);
         }
@@ -271,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
             String note = editMemo.getText().toString();
 
             int balance = MoneyTable.getBalanceOf(this, wallet);
-            AsyncInsert asyncInsert = new AsyncInsert(this, this::reload /* = () -> reload()*/);
+            AsyncInsert asyncInsert = new AsyncInsert(this, ()->reload(false) );
             switch(iom){
                 case IOM_INCOME:{
                     asyncInsert.execute(new InsertParams(
@@ -322,7 +324,10 @@ public class MainActivity extends AppCompatActivity {
         new Thread(() -> {
             final View tableLayout = this.getLayoutInflater().inflate(R.layout.main_table, null);
             final LinearLayout wrapper = findViewById(R.id.tableWrapper);
-            handler.post(() -> wrapper.addView(tableLayout));
+            handler.post(() -> {
+                wrapper.removeAllViews();
+                wrapper.addView(tableLayout);
+            });
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
                 Cursor cursor = MoneyTable.getNewTimeData(db, finalLimit);
 
@@ -342,61 +347,84 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * メイン画面の履歴表示に書き込む。順に下につながる
+     * メイン画面の履歴表示に書き込む。順に下につながる。Thread内使用を想定
      * @param params 書き込むinsertパラメータ
      */
     private void setHistoryTable(TableLayout tableLayout, InsertParams params){
-        TableRow tr = new TableRow(this);
-        TextView tv;
-//            timestamp
-        tv = new TextView(this);
-        tv.setPadding(3, 3, 3, 3);
-        tv.setText(myTool.toTimestamp(params.calendar));
-        tr.addView(tv);
-//            status
-        tv = new TextView(this);
-        tv.setPadding(3, 3, 3, 3);
-        if(params.income > 0){
-            tv.setText(R.string.status_income);
-        }else if(params.outgo > 0){
-            tv.setText(R.string.status_outgo);
-        }
-        tr.addView(tv);
-//            money
-        tv = new TextView(this);
-        tv.setPadding(3, 3, 3, 3);
-        tv.setGravity(Gravity.END);
-        if(params.income > 0){
-            tv.setText(String.valueOf(params.income));
-        }else if(params.outgo > 0){
-            tv.setText(String.valueOf(params.outgo));
-        }
-        tr.addView(tv);
-//            wallet
-        tv = new TextView(this);
-        tv.setPadding(3, 3, 3, 3);
-        tv.setGravity(Gravity.CENTER);
-        tv.setText(params.wallet);
-        tr.addView(tv);
-//            note
-        tv = new TextView(this);
-        tv.setPadding(3, 3, 3, 3);
+        String textStatus =
+                params.income > 0 ? getString(R.string.status_income) :
+                params.outgo > 0 ? getString(R.string.status_outgo) : "";
+        String textMoney =
+                params.income > 0 ? params.income.toString() :
+                params.outgo > 0 ? params.outgo.toString() : "";
         String g = params.genre;
         String n = params.note;
-        String note;
+        String textNote;
         if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
-            note = String.format("%s%s", g, n);
+            textNote = String.format("%s%s", g, n);
         } else {
-            note = String.format("%s : %s", g, n);
+            textNote = String.format("%s : %s", g, n);
         }
-        tv.setText(note);
-        tr.addView(tv);
-//            balance
-        tv = new TextView(this);
-        tv.setPadding(3, 3, 3, 3);
-        tv.setGravity(Gravity.END);
-        tv.setText(String.valueOf(params.balance));
-        tr.addView(tv);
+        Pair<?,?>[] set_TextGravity = new Pair[]{
+                Pair.create(myTool.toTimestamp(params.calendar),Gravity.START),
+                Pair.create(textStatus, Gravity.CENTER),
+                Pair.create(textMoney, Gravity.END),
+                Pair.create(params.wallet, Gravity.CENTER),
+                Pair.create(textNote, Gravity.START),
+                Pair.create(params.balance.toString(), Gravity.END)
+        };
+        TableRow tr = new TableRow(this);
+        TextView tv;
+
+        for (Pair<?, ?> p: set_TextGravity) {
+            tv = new TextView(this);
+            tv.setPadding(3, 3, 3, 3);
+            tv.setText((String) p.first);
+            tv.setGravity((Integer) p.second);
+            tr.addView(tv);
+        }
+
+////            timestamp
+//        tv = new TextView(this);
+//        tv.setPadding(3, 3, 3, 3);
+//        tv.setText(myTool.toTimestamp(params.calendar));
+//        tr.addView(tv);
+////            status
+//        tv = new TextView(this);
+//        tv.setPadding(3, 3, 3, 3);
+//        if(params.income > 0){
+//            tv.setText(R.string.status_income);
+//        }else if(params.outgo > 0){
+//            tv.setText(R.string.status_outgo);
+//        }
+//        tr.addView(tv);
+////            money
+//        tv = new TextView(this);
+//        tv.setPadding(3, 3, 3, 3);
+//        tv.setGravity(Gravity.END);
+//        if(params.income > 0){
+//            tv.setText(String.valueOf(params.income));
+//        }else if(params.outgo > 0){
+//            tv.setText(String.valueOf(params.outgo));
+//        }
+//        tr.addView(tv);
+////            wallet
+//        tv = new TextView(this);
+//        tv.setPadding(3, 3, 3, 3);
+//        tv.setGravity(Gravity.CENTER);
+//        tv.setText(params.wallet);
+//        tr.addView(tv);
+////            textNote
+//        tv = new TextView(this);
+//        tv.setPadding(3, 3, 3, 3);
+//        tv.setText(textNote);
+//        tr.addView(tv);
+////            balance
+//        tv = new TextView(this);
+//        tv.setPadding(3, 3, 3, 3);
+//        tv.setGravity(Gravity.END);
+//        tv.setText(String.valueOf(params.balance));
+//        tr.addView(tv);
 
         handler.post(()->tableLayout.addView(tr));
     }
@@ -414,15 +442,24 @@ public class MainActivity extends AppCompatActivity {
             t_sum, ave, ave*days));
     }
 
-    public void reload(){
+    /**
+     * reload(true);
+     */
+    public void reload(){reload(true);}
+
+    /**
+     * リロード
+     * @param resetSpin walletSpinをリセットするか否か。引数無しdefaultはtrue
+     */
+    public void reload(boolean resetSpin){
         Log.d("reload", "start");
         editMoney.getText().clear();
         editMemo.getText().clear();
-        spnWallet.setSelection(0);
-        spnWallet2.setSelection(0);
-        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
+        if(resetSpin)spnWallet.setSelection(0);
+        if(resetSpin)spnWallet2.setSelection(0);
+//        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
         String strLimit = PreferenceManager.getDefaultSharedPreferences(this).getString("main_readData_limit", "10");
-        readData(Integer.valueOf(strLimit));
+        readData(Integer.parseInt(strLimit));
         setTodaySum();
         Log.d("reload", "end");
     }
