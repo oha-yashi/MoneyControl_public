@@ -21,7 +21,7 @@
         <Preference
             android:key="csvImport"
             android:title="csvインポート"
-            android:summary="csvファイルから読み込み" />
+            android:summary="csvファイルから読み込んで上書き" />
         <Preference
             android:key="delete"
             android:title="テーブル削除" />

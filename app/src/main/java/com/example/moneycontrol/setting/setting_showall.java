@@ -34,7 +34,7 @@ public class setting_showall extends AppCompatActivity {
             TableLayout table = findViewById(R.id.tableALL);
             TextView tv;
 
-            Cursor c = db.rawQuery(MoneyTable.READ_ALL_QUERY, null);
+            Cursor c = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(MoneyTable.getTodayTableName()), null);
             c.moveToFirst();
 
             //LayoutParams

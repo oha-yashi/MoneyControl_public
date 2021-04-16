@@ -128,10 +128,16 @@ public class MainActivity extends AppCompatActivity {
                     btn_move.setText(R.string.button_move);
                 }
             });
+            // 資金移動実行ボタン
             findViewById(R.id.moveDoButton).setOnClickListener(view -> {
                 if(isMove){
-                    //正常処理
-                    iomButton(IOM_MOVE, null);
+                    // メモ登録できるようにする
+                    EditText editText = new EditText(this);
+                    new AlertDialog.Builder(this).setTitle("メモ登録")
+                            .setView(editText)
+                            .setPositiveButton("登録", (dialogInterface, i) ->
+                                    iomButton(IOM_MOVE, editText.getText().toString()))
+                            .show();
                     isMove = false;
                     L_memo.setVisibility(View.VISIBLE);
                     L_btn.setVisibility(View.VISIBLE);
@@ -295,14 +301,21 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
 //                    資金移動fromの書き込み
+                    Calendar calendar1 = Calendar.getInstance();
+//                    Log.d("calendar1", myTool.toTimestamp(calendar1));
+                    note = "-"+money + (TextUtils.isEmpty(genre) ? "" : " : "+genre);
                     InsertParams moveFromParams = new InsertParams(
-                            null,null,null,
-                            balance-intMoney,wallet,text_move,"-"+money);
+                            calendar1,null,null,
+                            balance-intMoney,wallet,text_move,note);
 //                    資金移動toの書き込み
+                    Calendar calendar2 = Calendar.getInstance();
+                    calendar2.add(Calendar.SECOND, 1); //便宜上1秒後とする
+//                    Log.d("calendar2", myTool.toTimestamp(calendar2));
                     balance = MoneyTable.getBalanceOf(this,wallet2);
-                    InsertParams moveToParams = new InsertParams(null, null, null,
+                    note = "+"+money + (TextUtils.isEmpty(genre) ? "" : " : "+genre);
+                    InsertParams moveToParams = new InsertParams(calendar2, null, null,
                             balance+intMoney,
-                            wallet2, text_move, "+"+money);
+                            wallet2, text_move, note);
                     asyncInsert.execute(moveFromParams, moveToParams);
                     break;
                 }

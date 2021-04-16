@@ -28,7 +28,7 @@ public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
     public AsyncInsert(Context context, Listener listener) {
         this.listener = listener;
         this.context = context;
-        Log.d("AsyncInsert", "make new");
+//        Log.d("AsyncInsert", "make new");
     }
 
     @Override
@@ -37,8 +37,9 @@ public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
             String calendarTableName = MoneyTable.getCalendarTableName(p.calendar);
             try (SQLiteDatabase db = MoneyTable.newDatabase(context)){
                 db.execSQL(MoneyTable.QUERY_CREATE(calendarTableName));
+//                Log.d("insert", p.toString());
                 db.insert(calendarTableName, null, p.toContentValues());
-                Log.d("timing", "MoneyTable.insert : done");
+//                Log.d("timing", "MoneyTable.insert : done");
             }catch (Exception e){
                 e.printStackTrace();
                 return false;

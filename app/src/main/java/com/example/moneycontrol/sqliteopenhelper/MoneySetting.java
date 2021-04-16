@@ -90,15 +90,6 @@ public class MoneySetting extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-    /*    {   //occur resource close Error
-            Cursor c = databaseNullCheck(context, null).rawQuery("SELECT name FROM " + table, null);
-            c.moveToFirst();
-            for(int i=0; i<c.getCount(); i++){
-                list.add(c.getString(0));
-                c.moveToNext();
-            }
-            c.close();
-        }*/
         return list.toArray(new String[0]);
     }
 }

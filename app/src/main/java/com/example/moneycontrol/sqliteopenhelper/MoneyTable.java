@@ -1,15 +1,11 @@
 package com.example.moneycontrol.sqliteopenhelper;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.AsyncTask;
 import android.util.Log;
-
-import com.example.moneycontrol.myTool;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -27,10 +23,11 @@ public class MoneyTable extends SQLiteOpenHelper {
             "income", "outgo", "balance", "wallet", "genre", "note"
     };
 
-    private static String TABLE_NAME = getTodayTableName(); //ここで一応宣言時代入ができている。
-    public static final String READ_ALL_QUERY = "SELECT * FROM " + TABLE_NAME;
-    public static String QUERY_CREATE(String table_name) {return "CREATE TABLE IF NOT EXISTS " + table_name + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
-    public static String QUERY_DROP(String table_name) {return "DROP TABLE " + table_name;}
+    //ここで一応宣言時代入ができている。デフォルトはgetTodayTableName
+    private static String TABLE_NAME = getTodayTableName();
+    public static String QUERY_SELECT_ALL(String tableName) {return "SELECT * FROM " + tableName;}
+    public static String QUERY_CREATE(String tableName) {return "CREATE TABLE IF NOT EXISTS " + tableName + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
+    public static String QUERY_DROP(String tableName) {return "DROP TABLE " + tableName;}
 
     public static String getTodayTableName(){
         return getCalendarTableName(Calendar.getInstance());
@@ -41,17 +38,32 @@ public class MoneyTable extends SQLiteOpenHelper {
     }
     public static String getExistTableNames(Context context){
         String QUERY_GET_TABLES = "SELECT name FROM sqlite_master WHERE type ='table' AND name NOT LIKE 'sqlite_%'";
-        SQLiteDatabase sqLiteDatabase = newDatabase(context);
-        Cursor cursor = sqLiteDatabase.rawQuery(QUERY_GET_TABLES, null);
         StringBuilder stringBuilder = new StringBuilder();
-        cursor.moveToFirst();
-        for(int i=0; i<cursor.getCount(); i++){
-            stringBuilder.append(cursor.getString(0)).append("/");
-            cursor.moveToNext();
+        try(SQLiteDatabase sqLiteDatabase = newDatabase(context)) {
+            Cursor cursor = sqLiteDatabase.rawQuery(QUERY_GET_TABLES, null);
+            cursor.moveToFirst();
+            for (int i = 0; i < cursor.getCount(); i++) {
+                stringBuilder.append(cursor.getString(0)).append("/");
+                cursor.moveToNext();
+            }
+            cursor.close();
         }
-        cursor.close();
-        sqLiteDatabase.close();
         return stringBuilder.toString();
+    }
+
+    public static String[] getMoneyTableNames(Context context){
+        String QUERY_GET_TABLES = "SELECT name FROM sqlite_master WHERE type ='table' AND name LIKE 'Y%M%'";
+        List<String> rtn = new ArrayList<>();
+        try(SQLiteDatabase db = newDatabase(context)){
+            Cursor cursor = db.rawQuery(QUERY_GET_TABLES, null);
+            cursor.moveToFirst();
+            for(int i=0; i<cursor.getCount(); i++){
+                rtn.add(cursor.getString(0));
+                cursor.moveToNext();
+            }
+            cursor.close();
+        }
+        return rtn.toArray(new String[0]);
     }
 
     /**

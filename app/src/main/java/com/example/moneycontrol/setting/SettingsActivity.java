@@ -1,5 +1,6 @@
 package com.example.moneycontrol.setting;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -26,6 +27,7 @@ import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
 import java.util.Calendar;
+import java.util.Objects;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -72,12 +74,9 @@ public class SettingsActivity extends AppCompatActivity {
 
             findPreference("delete").setOnPreferenceClickListener((preference) -> {
                 String tableName = MoneyTable.getTodayTableName();
-                new AlertDialog.Builder(getActivity()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")
+                new AlertDialog.Builder(requireContext()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")
                         .setPositiveButton("削除", (dialogInterface, i) -> {
-                            SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getContext());
-                            sqLiteDatabase.execSQL(MoneyTable.QUERY_DROP(tableName));
-                            sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(tableName));
-                            sqLiteDatabase.close();
+                            deleteTable(requireContext());
                         })
                         .setNegativeButton("削除しません", null)
                         .show();
@@ -87,7 +86,7 @@ public class SettingsActivity extends AppCompatActivity {
             findPreference("export").setOnPreferenceClickListener(preference -> {
                 String[] list = new String[]{"csv", "markdown"};
                 final int[] selected = {-1};
-                new AlertDialog.Builder(getActivity()).setTitle("エクスポート")
+                new AlertDialog.Builder(requireContext()).setTitle("エクスポート")
                         .setSingleChoiceItems( //setMessageは共存できない
                         list, selected[0], new DialogInterface.OnClickListener() {
                             @Override
@@ -105,6 +104,7 @@ public class SettingsActivity extends AppCompatActivity {
             });
 
             findPreference("csvImport").setOnPreferenceClickListener(preference -> {
+                deleteTable(requireContext());
                 startActivity(new Intent(getActivity(), readCSV.class));
                 return false;
             });
@@ -123,7 +123,7 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(strTime);
                 return false;
             };
-            if (true) { // TODO: テストしないときここfalse
+            if (false) { // TODO: テストしないときここfalse
 //                prefTest(p);
 /*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
                 String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};
@@ -165,7 +165,7 @@ public class SettingsActivity extends AppCompatActivity {
             e.setText(MoneyTable.getColumnsJoined());
             p.setOnPreferenceClickListener(preference -> {
                 Log.d("p#onClick", "run");
-                new AlertDialog.Builder(getActivity()).setTitle("get columns")
+                new AlertDialog.Builder(requireActivity()).setTitle("get columns")
                         .setView(e).show();
                 return false;
             });
@@ -187,7 +187,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                 SQLiteDatabase db = MoneyTable.newDatabase(getActivity());
                 //                getActivityでfragmentの所属するActivityが返るので実質this
-                Cursor cursor = db.rawQuery(MoneyTable.READ_ALL_QUERY, null);
+                Cursor cursor = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(MoneyTable.getTodayTableName()), null);
                 if (isCSV)
                     exportText.append(String.join(",", cursor.getColumnNames())).append("\n");
                 if (isMarkdown) {
@@ -218,5 +218,15 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(shareIntent);
             }).start();
         }
+
+
+        private void deleteTable(Context context){
+            String tableName = MoneyTable.getTodayTableName();
+            try(SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(context)) {
+                sqLiteDatabase.execSQL(MoneyTable.QUERY_DROP(tableName));
+                sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(tableName));
+            }
+        }
+
     }
 }

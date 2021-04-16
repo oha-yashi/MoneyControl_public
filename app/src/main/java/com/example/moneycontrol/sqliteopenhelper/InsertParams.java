@@ -2,6 +2,7 @@ package com.example.moneycontrol.sqliteopenhelper;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -32,7 +33,8 @@ public class InsertParams {
         this.wallet = wallet;
         this.genre = genre;
         this.note = note;
-//            Log.d("InsertParams", toString());
+
+//        Log.d("InsertParams", toString());
     }
 
     public InsertParams(Cursor cursor){
