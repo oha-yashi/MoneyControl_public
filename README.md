@@ -4,8 +4,6 @@
 
 [ここ!](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/build/outputs/apk/release/app-release-unsigned.apk)
 
-[or ここ](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/release/app-release.aab)
-
 スマホブラウザで開いて、`Download`をクリック。ダウンロードしたapkファイルを開いてインストール。セキュリティ的な何かを許可する必要があるかも。よろしく。
 
 ## ソースコード

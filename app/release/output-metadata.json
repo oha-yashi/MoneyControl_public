@@ -12,7 +12,7 @@
       "filters": [],
       "versionCode": 46,
       "versionName": "1.8.4",
-      "outputFile": "app-release-unsigned.apk"
+      "outputFile": "app-release.apk"
     }
   ]
 }
