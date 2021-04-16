@@ -6,7 +6,9 @@
 
 スマホブラウザで開いて、`Download`をクリック。ダウンロードしたapkファイルを開いてインストール。セキュリティ的な何かを許可する必要があるかも。よろしく。
 
-> メモ</br>有線release:[アプリへの署名](https://developer.android.com/studio/publish/app-signing)を参考に、Open Module Settings -> Signing Configを忘れない
+>メモ</br>
+>有線release:[アプリへの署名](https://developer.android.com/studio/publish/app-signing)を参考に、Open Module Settings -> Signing Configを忘れない</br>
+>有線releaseとuploadするSignedAPKが相互上書き可能になった
 
 ## ソースコード
 
