@@ -16,13 +16,14 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // version文字列をアプリから参照するための設定
     applicationVariants.all { variant ->
         variant.resValue "string", "versionName", variant.versionName
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
