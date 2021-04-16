@@ -4,11 +4,13 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/money_coin_blank_100"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/money_coin_blank_100"
         android:supportsRtl="true"
         android:theme="@style/Theme.MoneyControl">
+
+        <!--Icon from いらすとや https://www.irasutoya.com/2019/04/blog-post_303.html-->
 
         <activity
             android:name=".MainActivity"

@@ -279,7 +279,12 @@ public class MainActivity extends AppCompatActivity {
             String note = editMemo.getText().toString();
 
             int balance = MoneyTable.getBalanceOf(this, wallet);
-            AsyncInsert asyncInsert = new AsyncInsert(this, ()->reload(false) );
+            AsyncInsert asyncInsert = new AsyncInsert(this, new AsyncInsert.Listener() {
+                @Override
+                public void onSuccess() {
+                    MainActivity.this.reload(false);
+                }
+            });
             switch(iom){
                 case IOM_INCOME:{
                     asyncInsert.execute(new InsertParams(

@@ -4,9 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
-import android.util.Log;
-
-import com.example.moneycontrol.MainActivity;
 
 /**
  * コンストラクタにはContextと、処理後の動作（リロードを想定）を設定してあげる（static云々でこちらからは引っ張れない）
@@ -16,7 +13,7 @@ import com.example.moneycontrol.MainActivity;
 public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
     private final Listener listener;
     public interface Listener {
-        void afterInsert();
+        void onSuccess();
     }
     private final Context context;
 
@@ -28,7 +25,6 @@ public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
     public AsyncInsert(Context context, Listener listener) {
         this.listener = listener;
         this.context = context;
-//        Log.d("AsyncInsert", "make new");
     }
 
     @Override
@@ -37,9 +33,7 @@ public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
             String calendarTableName = MoneyTable.getCalendarTableName(p.calendar);
             try (SQLiteDatabase db = MoneyTable.newDatabase(context)){
                 db.execSQL(MoneyTable.QUERY_CREATE(calendarTableName));
-//                Log.d("insert", p.toString());
                 db.insert(calendarTableName, null, p.toContentValues());
-//                Log.d("timing", "MoneyTable.insert : done");
             }catch (Exception e){
                 e.printStackTrace();
                 return false;
@@ -51,7 +45,7 @@ public class AsyncInsert extends AsyncTask<InsertParams, Object, Boolean> {
     @Override
     protected void onPostExecute(Boolean isSuccess){
         if(listener != null && isSuccess){
-            listener.afterInsert();
+            listener.onSuccess();
         }
     }
 
