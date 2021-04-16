@@ -6,6 +6,8 @@
 
 スマホブラウザで開いて、`Download`をクリック。ダウンロードしたapkファイルを開いてインストール。セキュリティ的な何かを許可する必要があるかも。よろしく。
 
+> メモ</br>有線接続はdebugで作成。uploadはSignedAPK
+
 ## ソースコード
 
 - [java](https://github.com/oha-yashi/MoneyControl_public/tree/master/app/src/main/java/com/example/moneycontrol)

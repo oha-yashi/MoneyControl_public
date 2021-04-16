@@ -373,6 +373,7 @@ public class MainActivity extends AppCompatActivity {
                 Pair.create(textNote, Gravity.START),
                 Pair.create(params.balance.toString(), Gravity.END)
         };
+
         TableRow tr = new TableRow(this);
         TextView tv;
 
@@ -383,48 +384,6 @@ public class MainActivity extends AppCompatActivity {
             tv.setGravity((Integer) p.second);
             tr.addView(tv);
         }
-
-////            timestamp
-//        tv = new TextView(this);
-//        tv.setPadding(3, 3, 3, 3);
-//        tv.setText(myTool.toTimestamp(params.calendar));
-//        tr.addView(tv);
-////            status
-//        tv = new TextView(this);
-//        tv.setPadding(3, 3, 3, 3);
-//        if(params.income > 0){
-//            tv.setText(R.string.status_income);
-//        }else if(params.outgo > 0){
-//            tv.setText(R.string.status_outgo);
-//        }
-//        tr.addView(tv);
-////            money
-//        tv = new TextView(this);
-//        tv.setPadding(3, 3, 3, 3);
-//        tv.setGravity(Gravity.END);
-//        if(params.income > 0){
-//            tv.setText(String.valueOf(params.income));
-//        }else if(params.outgo > 0){
-//            tv.setText(String.valueOf(params.outgo));
-//        }
-//        tr.addView(tv);
-////            wallet
-//        tv = new TextView(this);
-//        tv.setPadding(3, 3, 3, 3);
-//        tv.setGravity(Gravity.CENTER);
-//        tv.setText(params.wallet);
-//        tr.addView(tv);
-////            textNote
-//        tv = new TextView(this);
-//        tv.setPadding(3, 3, 3, 3);
-//        tv.setText(textNote);
-//        tr.addView(tv);
-////            balance
-//        tv = new TextView(this);
-//        tv.setPadding(3, 3, 3, 3);
-//        tv.setGravity(Gravity.END);
-//        tv.setText(String.valueOf(params.balance));
-//        tr.addView(tv);
 
         handler.post(()->tableLayout.addView(tr));
     }
