@@ -30,9 +30,9 @@ public class MoneySetting extends SQLiteOpenHelper {
             {"食費", "生活費", "娯楽", "交通費", "貯金", "その他"},
             {"財布", "三井住友", "モバイルSuica", "楽天", "ゆうちょ", "その他"}
     };
-    String createQuery(int item){
-        return "CREATE TABLE "+ TABLE_NAME[item] +" (_id integer primary key autoincrement, name)";
-    }
+    public static String QUERY_CREATE(int i){ return "CREATE TABLE "+ TABLE_NAME[i] +" (_id integer primary key autoincrement, name)"; }
+    public static String QUERY_UPDATE(int i, String from, String to){return String.format("UPDATE %s SET name='%s' WHERE name='%s' ", TABLE_NAME[i],to,from);}
+    public static String QUERY_DELETE(int i, String name){return String.format("DELETE FROM %s WHERE name='%s'", TABLE_NAME[i],name);}
 
     public MoneySetting(@Nullable Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
@@ -43,7 +43,7 @@ public class MoneySetting extends SQLiteOpenHelper {
         ContentValues cv = new ContentValues();
 
         for(int i=INCOME; i<=WALLET; i++){
-            sqLiteDatabase.execSQL(createQuery(i));
+            sqLiteDatabase.execSQL(QUERY_CREATE(i));
             for (String s: DEFAULT_LIST[i]) {
                 cv.put("name", s);
                 sqLiteDatabase.insert(TABLE_NAME[i], null, cv);

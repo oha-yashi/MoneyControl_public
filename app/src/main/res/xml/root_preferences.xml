@@ -28,6 +28,20 @@
 
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="選択項目編集">
+
+        <Preference
+            android:key="IncomeGenre"
+            android:title="収入ジャンル編集" />
+        <Preference
+            android:key="OutgoGenre"
+            android:title="支出ジャンル編集" />
+        <Preference
+            android:key="Wallet"
+            android:title="ウォレット編集" />
+
+    </PreferenceCategory>
+
     <PreferenceCategory android:title="その他">
         <Preference
             android:title="アプリバージョン"

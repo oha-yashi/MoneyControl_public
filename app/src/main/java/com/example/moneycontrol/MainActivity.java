@@ -149,13 +149,6 @@ public class MainActivity extends AppCompatActivity {
             editMoney.setOnFocusChangeListener(editFC);
             editMemo.setOnFocusChangeListener(editFC);
 
-            //spinnerにwalletを設定する
-            String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
-//            handler.post(()->{
-                spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
-                spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
-//            });
-
             //背景をタッチした時focusを奪う
             findViewById(R.id.backGroundLayout).setOnTouchListener((view, motionEvent) -> {
                 view.requestFocus();
@@ -432,8 +425,10 @@ public class MainActivity extends AppCompatActivity {
         Log.d("reload", "start");
         editMoney.getText().clear();
         editMemo.getText().clear();
-        if(resetSpin)spnWallet.setSelection(0);
-        if(resetSpin)spnWallet2.setSelection(0);
+        //spinnerにwalletを設定する
+        String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
+        spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+        spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
 //        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
         String strLimit = PreferenceManager.getDefaultSharedPreferences(this).getString("main_readData_limit", "10");
         readData(Integer.parseInt(strLimit));

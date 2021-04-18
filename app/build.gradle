@@ -31,8 +31,8 @@ android {
         applicationId "com.example.moneycontrol"
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 49 //バージョンアップするごとにインクリメント
-        versionName "1.8.5.1" //ユーザーに表示されるバージョン文字列
+        versionCode 50 //バージョンアップするごとにインクリメント
+        versionName "1.8.6" //ユーザーに表示されるバージョン文字列
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

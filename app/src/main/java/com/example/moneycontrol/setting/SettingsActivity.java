@@ -1,5 +1,6 @@
 package com.example.moneycontrol.setting;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,6 +24,7 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.example.moneycontrol.myTool;
+import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
@@ -71,6 +73,9 @@ public class SettingsActivity extends AppCompatActivity {
                         });
             }
 
+            /*
+                データベース操作
+             */
 
             findPreference("delete").setOnPreferenceClickListener((preference) -> {
                 String tableName = MoneyTable.getTodayTableName();
@@ -108,6 +113,27 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(new Intent(getActivity(), readCSV.class));
                 return false;
             });
+
+            /*
+                選択項目編集
+             */
+
+            Preference.OnPreferenceClickListener editMoneySetting = new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    int itemNum;
+                    for(itemNum = MoneySetting.INCOME; itemNum<=MoneySetting.OUTGO; itemNum++)if(preference.getKey().equals(MoneySetting.TABLE_NAME[itemNum]))break;
+                    Log.d("itemNum", String.valueOf(itemNum));
+                    editMoneySetting_Dialog(itemNum);
+                    return false;
+                }
+            };
+
+            for(int i=MoneySetting.INCOME; i<=MoneySetting.WALLET; i++)findPreference(MoneySetting.TABLE_NAME[i]).setOnPreferenceClickListener(editMoneySetting);
+
+            /*
+                その他
+             */
 
             new Thread(()->{
                 String getTodayTableName = MoneyTable.getTodayTableName();
@@ -228,5 +254,51 @@ public class SettingsActivity extends AppCompatActivity {
             }
         }
 
+        private void editMoneySetting_Dialog(int item){
+            String[] list = MoneySetting.getList(requireContext(), item);
+            new AlertDialog.Builder(requireContext())
+                    .setItems(list, (dialogInterface, i) -> {
+                        editMoneySetting_editList(item, list[i]);
+                    })
+                    .setPositiveButton("追加", (dialogInterface, i) -> {
+                        editMoneySetting_addList(item);
+                    })
+                    .setNeutralButton("閉じる", null).show();
+        }
+
+        private void editMoneySetting_editList(int item, String name){
+            EditText editText = new EditText(requireContext());
+            editText.setText(name);
+            new AlertDialog.Builder(requireContext()).setTitle("項目編集")
+                    .setView(editText)
+                    .setPositiveButton("変更", (dialogInterface, i) -> {
+                        if(TextUtils.isEmpty(editText.getText()))return;
+                        try(SQLiteDatabase db = new MoneySetting(requireContext()).getWritableDatabase()){
+                            db.execSQL(MoneySetting.QUERY_UPDATE(item, name, editText.getText().toString()));
+                        }
+                    })
+                    .setNegativeButton("削除",(dialogInterface, i) -> {
+                        if(TextUtils.isEmpty(editText.getText()))return;
+                        try(SQLiteDatabase db = new MoneySetting(requireContext()).getWritableDatabase()){
+                            db.execSQL(MoneySetting.QUERY_DELETE(item, editText.getText().toString()));
+                        }
+                    })
+                    .setNeutralButton("閉じる",null).show();
+        }
+
+        private void editMoneySetting_addList(int item){
+            EditText editText = new EditText(requireContext());
+            new AlertDialog.Builder(requireContext()).setTitle("項目追加")
+                    .setView(editText)
+                    .setPositiveButton("追加", (dialogInterface, i) -> {
+                        if(TextUtils.isEmpty(editText.getText()))return;
+                        try(SQLiteDatabase db = new MoneySetting(requireContext()).getWritableDatabase()){
+                            ContentValues cv = new ContentValues();
+                            cv.put("name", editText.getText().toString());
+                            db.insert(MoneySetting.TABLE_NAME[item],null,cv);
+                        }
+                    })
+                    .setNeutralButton("閉じる",null).show();
+        }
     }
 }
