@@ -15,7 +15,7 @@ import java.util.List;
 public class MoneySetting extends SQLiteOpenHelper {
     private static final String TAG = "MSOH";
 
-    private static final int DATABASE_VERSION = 3 ;
+    private static final int DATABASE_VERSION = 4 ;
     private static final String DATABASE_NAME = "MS.db";
 
     public static final int INCOME = 0, OUTGO = 1, WALLET = 2;
@@ -26,11 +26,11 @@ public class MoneySetting extends SQLiteOpenHelper {
     }
 
     public static final String[][] DEFAULT_LIST = {
-            {"給料", "残高", "その他"},
-            {"食費", "生活費", "娯楽", "交通費", "貯金", "その他"},
-            {"財布", "三井住友", "モバイルSuica", "楽天", "ゆうちょ", "その他"}
+            {"給料", "その他"},
+            {"食費", "生活費", "娯楽", "交通費", "通販", "貯金", "その他"},
+            {"財布", "三井住友", "モバイルSuica", "楽天", "ゆうちょ", "貯金", "その他"}
     };
-    public static String QUERY_CREATE(int i){ return "CREATE TABLE "+ TABLE_NAME[i] +" (_id integer primary key autoincrement, name)"; }
+    public static String QUERY_CREATE(int i){ return "CREATE TABLE "+ TABLE_NAME[i] +" (_id INTEGER primary key autoincrement, name TEXT, priority INTEGER)"; }
     public static String QUERY_UPDATE(int i, String from, String to){return String.format("UPDATE %s SET name='%s' WHERE name='%s' ", TABLE_NAME[i],to,from);}
     public static String QUERY_DELETE(int i, String name){return String.format("DELETE FROM %s WHERE name='%s'", TABLE_NAME[i],name);}
 
@@ -44,8 +44,10 @@ public class MoneySetting extends SQLiteOpenHelper {
 
         for(int i=INCOME; i<=WALLET; i++){
             sqLiteDatabase.execSQL(QUERY_CREATE(i));
+            int j=0;
             for (String s: DEFAULT_LIST[i]) {
                 cv.put("name", s);
+                cv.put("priority", j++);
                 sqLiteDatabase.insert(TABLE_NAME[i], null, cv);
                 cv.clear();
             }
@@ -79,7 +81,7 @@ public class MoneySetting extends SQLiteOpenHelper {
         List<String> list = new ArrayList<>();
         String table = TABLE_NAME[item];
         try(SQLiteDatabase db = databaseNullCheck(context, null)){
-            Cursor c = db.rawQuery("SELECT name FROM " + table, null);
+            Cursor c = db.rawQuery(String.format("SELECT name FROM %s ORDER BY priority", table), null);
             c.moveToFirst();
             for(int i=0; i<c.getCount(); i++){
                 list.add(c.getString(0));
