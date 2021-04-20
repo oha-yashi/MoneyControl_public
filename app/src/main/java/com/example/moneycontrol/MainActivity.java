@@ -46,8 +46,10 @@ import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.function.Function;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -87,6 +89,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     };
+
+    static class FunctionButton {
+        private FB fb;
+        public interface FB { void f();}
+
+        public FunctionButton(FB fb){this.fb = fb;}
+        public void fn_do(){
+            fb.f();
+        }
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -162,17 +174,17 @@ public class MainActivity extends AppCompatActivity {
         }).start();
 
 //        functionButtonの設定
-        String[] functions = new String[]{"残額表示", "id削除"};
+        Pair<String[], FunctionButton[]> fn_pairs = Pair.create(
+                new String[]{"残額表示", "id削除"},
+                new FunctionButton[]{
+                        new FunctionButton(this::fn_checkBalanceDialog),
+                        new FunctionButton(this::fn_deleteById)
+                }
+        );
         findViewById(R.id.functionButton).setOnClickListener(view -> {
             new AlertDialog.Builder(this).setTitle("多機能ボタン")
-                    .setItems(functions, (dialogInterface, i) -> {
-                        switch(i){
-                            case 0:
-                                fn_checkBalanceDialog(); break;
-                            case 1:{
-                                fn_deleteById(); break;
-                            }
-                        }
+                    .setItems(fn_pairs.first, (dialogInterface, i) -> {
+                        fn_pairs.second[i].fn_do();
                     })
                     .setNeutralButton("閉じる",null)
                     .show();
