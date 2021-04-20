@@ -149,7 +149,7 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(strTime);
                 return false;
             };
-            if (false) { // TODO: テストしないときここfalse
+            if (true) { // TODO: テストしないときここfalse
 //                prefTest(p);
 /*                SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(getActivity());
                 String[] AS = {"IncomeGenre", "OutgoGenre", "Wallet"};

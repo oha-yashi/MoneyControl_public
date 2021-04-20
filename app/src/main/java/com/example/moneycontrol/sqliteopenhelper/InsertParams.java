@@ -2,10 +2,14 @@ package com.example.moneycontrol.sqliteopenhelper;
 
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.Pair;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.moneycontrol.MainActivity;
 import com.example.moneycontrol.myTool;
 
 import java.util.Calendar;
@@ -25,8 +29,7 @@ public class InsertParams {
     public InsertParams(@Nullable Calendar calendar,
                         @Nullable Integer income, @Nullable Integer outgo, Integer balance,
                         String wallet, String genre, String note){
-        this.calendar = calendar;
-        if(calendar == null)this.calendar = Calendar.getInstance();
+        this.calendar = calendar==null ? Calendar.getInstance() : calendar;
         this.income = income;
         this.outgo = outgo;
         this.balance = balance;
@@ -49,15 +52,13 @@ public class InsertParams {
     }
 
     public String toString(){
-        StringBuilder builder = new StringBuilder();
-        builder.append(myTool.toTimestamp(calendar)).append(",")
-                .append(income).append(",")
-                .append(outgo).append(",")
-                .append(balance).append(",")
-                .append(wallet).append(",")
-                .append(genre).append(",")
-                .append(note);
-        return builder.toString();
+        return myTool.toTimestamp(calendar) + "," +
+                income + "," +
+                outgo + "," +
+                balance + "," +
+                wallet + "," +
+                genre + "," +
+                note;
     }
 
     public ContentValues toContentValues(){
@@ -70,5 +71,37 @@ public class InsertParams {
         cv.put("genre", genre);
         cv.put("note", note);
         return cv;
+    }
+
+    public String getStatus(){
+        return this.income > 0 ? "△" :
+                this.outgo > 0 ? "▼" : "";
+    }
+
+    public String getCombinedNote(){
+        String g = this.genre;
+        String n = this.note;
+        String rtn;
+        if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) rtn = String.format("%s%s", g, n);
+        else rtn = String.format("%s : %s", g, n);
+        return rtn;
+    }
+
+    public static Pair<InsertParams,InsertParams> makeMoveParams(
+            @Nullable Calendar calendar, @NonNull Integer money,
+            @NonNull Integer balance1, @NonNull Integer balance2,
+            @NonNull String wallet1, @NonNull String wallet2,
+            @Nullable String noteByGenre){
+        Log.d("makeMoveParams", "run");
+        Calendar c1 = calendar==null ? Calendar.getInstance() : calendar;
+        Calendar c2 = Calendar.getInstance();
+        c2.setTime(c1.getTime());
+        c2.add(Calendar.SECOND,1);
+        String noteAdd = TextUtils.isEmpty(noteByGenre) ? "" : " : "+noteByGenre;
+        Pair<InsertParams,InsertParams> rtn = new Pair<>(
+                new InsertParams(c1,null,null, balance1 - money, wallet1,"資金移動","-"+money+noteAdd),
+                new InsertParams(c2,null,null, balance2 + money, wallet2,"資金移動","+"+money+noteAdd)
+        );
+        return rtn;
     }
 }

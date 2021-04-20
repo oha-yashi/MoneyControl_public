@@ -11,7 +11,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.Menu;
@@ -46,10 +45,9 @@ import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.function.Function;
+import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -78,27 +76,14 @@ public class MainActivity extends AppCompatActivity {
      * editText用focusChangeListener
      * フォーカスを得たらキーボードを出す。フォーカスが無くなったら隠す
      */
-    View.OnFocusChangeListener editFC = new View.OnFocusChangeListener() {
-        @Override
-        public void onFocusChange(View view, boolean isFocused) {
-            InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            if(isFocused){
-                inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
-            }else{
-                inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-            }
+    View.OnFocusChangeListener editFC = (view, isFocused) -> {
+        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        if(isFocused){
+            inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_IMPLICIT, InputMethodManager.HIDE_NOT_ALWAYS);
+        }else{
+            inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
         }
     };
-
-    static class FunctionButton {
-        private FB fb;
-        public interface FB { void f();}
-
-        public FunctionButton(FB fb){this.fb = fb;}
-        public void fn_do(){
-            fb.f();
-        }
-    }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -170,26 +155,24 @@ public class MainActivity extends AppCompatActivity {
             //addButtonでeditMoneyにフォーカス当てる
             findViewById(R.id.addButton).setOnClickListener(view ->
                     editMoney.requestFocus());
-            Log.d("timing", "end of thread");
         }).start();
 
 //        functionButtonの設定
-        Pair<String[], FunctionButton[]> fn_pairs = Pair.create(
-                new String[]{"残額表示", "id削除"},
-                new FunctionButton[]{
-                        new FunctionButton(this::fn_checkBalanceDialog),
-                        new FunctionButton(this::fn_deleteById)
+        /**
+         * リストに出すタイトルと対応する関数それぞれの配列のペア
+         */
+        Pair<String[], myTool.MyFunc[]> fn_pairs = Pair.create(
+                new String[]{"残額表示", "メモリー", "id削除"},
+                new myTool.MyFunc[]{
+                        new myTool.MyFunc(this::fn_checkBalanceDialog),
+                        new myTool.MyFunc(this::fn_memoryInsert),
+                        new myTool.MyFunc(this::fn_deleteById)
                 }
         );
-        findViewById(R.id.functionButton).setOnClickListener(view -> {
-            new AlertDialog.Builder(this).setTitle("多機能ボタン")
-                    .setItems(fn_pairs.first, (dialogInterface, i) -> {
-                        fn_pairs.second[i].fn_do();
-                    })
-                    .setNeutralButton("閉じる",null)
-                    .show();
-        });
-        Log.d("timing", "before reload");
+        findViewById(R.id.functionButton).setOnClickListener(view -> new AlertDialog.Builder(this).setTitle("多機能ボタン")
+                .setItems(fn_pairs.first, (dialogInterface, i) -> fn_pairs.second[i].fn_do())
+                .setNeutralButton("閉じる",null)
+                .show());
         reload();
     }
     //End of OnCreate
@@ -278,18 +261,12 @@ public class MainActivity extends AppCompatActivity {
 
         if(!TextUtils.isEmpty(money)){
             int intMoney = Integer.parseInt(money);
-            String text_move = getString(R.string.button_move);
             String wallet = (String) spnWallet.getSelectedItem();
             String wallet2 = (String) spnWallet2.getSelectedItem();
             String note = editMemo.getText().toString();
 
             int balance = MoneyTable.getBalanceOf(this, wallet);
-            AsyncInsert asyncInsert = new AsyncInsert(this, new AsyncInsert.Listener() {
-                @Override
-                public void onSuccess() {
-                    MainActivity.this.reload(false);
-                }
-            });
+            AsyncInsert asyncInsert = new AsyncInsert(this, () -> MainActivity.this.reload(false));
             switch(iom){
                 case IOM_INCOME:{
                     asyncInsert.execute(new InsertParams(
@@ -304,29 +281,16 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 }
                 case IOM_MOVE:{
-                    if(wallet.equals(wallet2)){
+                    if(Objects.equals(wallet, wallet2)){
                         String message = "同walletへの資金移動は不可!!";
-//                                Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
                         Snackbar.make(findViewById(R.id.myCoordinatorLayout), message, Snackbar.LENGTH_LONG).show();
                         break;
                     }
-//                    資金移動fromの書き込み
-                    Calendar calendar1 = Calendar.getInstance();
-//                    Log.d("calendar1", myTool.toTimestamp(calendar1));
-                    note = "-"+money + (TextUtils.isEmpty(genre) ? "" : " : "+genre);
-                    InsertParams moveFromParams = new InsertParams(
-                            calendar1,null,null,
-                            balance-intMoney,wallet,text_move,note);
-//                    資金移動toの書き込み
-                    Calendar calendar2 = Calendar.getInstance();
-                    calendar2.add(Calendar.SECOND, 1); //便宜上1秒後とする
-//                    Log.d("calendar2", myTool.toTimestamp(calendar2));
-                    balance = MoneyTable.getBalanceOf(this,wallet2);
-                    note = "+"+money + (TextUtils.isEmpty(genre) ? "" : " : "+genre);
-                    InsertParams moveToParams = new InsertParams(calendar2, null, null,
-                            balance+intMoney,
-                            wallet2, text_move, note);
-                    asyncInsert.execute(moveFromParams, moveToParams);
+//                    資金移動書き込み
+                    Pair<InsertParams, InsertParams> p = InsertParams.makeMoveParams(Calendar.getInstance(),intMoney,
+                            MoneyTable.getBalanceOf(this,wallet),MoneyTable.getBalanceOf(this,wallet2),
+                            wallet,wallet2,genre);
+                    asyncInsert.execute(p.first,p.second);
                     break;
                 }
             }
@@ -365,7 +329,6 @@ public class MainActivity extends AppCompatActivity {
 
                 cursor.close();
             }
-            Log.d("readData", "finished");
         }).start();
     }
 
@@ -374,20 +337,11 @@ public class MainActivity extends AppCompatActivity {
      * @param params 書き込むinsertパラメータ
      */
     private void setHistoryTable(TableLayout tableLayout, InsertParams params){
-        String textStatus =
-                params.income > 0 ? getString(R.string.status_income) :
-                params.outgo > 0 ? getString(R.string.status_outgo) : "";
+        String textStatus = params.getStatus();
         String textMoney =
                 params.income > 0 ? params.income.toString() :
                 params.outgo > 0 ? params.outgo.toString() : "";
-        String g = params.genre;
-        String n = params.note;
-        String textNote;
-        if (TextUtils.isEmpty(g) || TextUtils.isEmpty(n)) {
-            textNote = String.format("%s%s", g, n);
-        } else {
-            textNote = String.format("%s : %s", g, n);
-        }
+        String textNote = params.getCombinedNote();
         Pair<?,?>[] set_TextGravity = new Pair[]{
                 Pair.create(myTool.toTimestamp(params.calendar),Gravity.START),
                 Pair.create(textStatus, Gravity.CENTER),
@@ -434,7 +388,6 @@ public class MainActivity extends AppCompatActivity {
      * @param resetSpin walletSpinをリセットするか否か。引数無しdefaultはtrue
      */
     public void reload(boolean resetSpin){
-        Log.d("reload", "start");
         editMoney.getText().clear();
         editMemo.getText().clear();
         //spinnerにwalletを設定する
@@ -445,32 +398,22 @@ public class MainActivity extends AppCompatActivity {
         String strLimit = PreferenceManager.getDefaultSharedPreferences(this).getString("main_readData_limit", "10");
         readData(Integer.parseInt(strLimit));
         setTodaySum();
-        Log.d("reload", "end");
     }
 
 //    functionButtonに入れる機能
 
-    /**
-     * functionButton
-     * 残額表示ダイアログ
-     */
     private void fn_checkBalanceDialog(){
         CharSequence[] walletList = MoneySetting.getList(this, MoneySetting.WALLET);
         final View v = this.getLayoutInflater().inflate(R.layout.dialog_button_close, null);
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("残額表示")
-                .setSingleChoiceItems(walletList, -1, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        new Thread(()->{
-                            String selected = walletList[i].toString();
-                            String balanceText = "¥"+MoneyTable.getBalanceOf(MainActivity.this, selected);
-                            handler.post(()-> Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
-                                    .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected)).show()
-                            );
-                        }).start();
-                    }
-                })
+                .setSingleChoiceItems(walletList, -1, (dialogInterface, i) -> new Thread(()->{
+                    String selected = walletList[i].toString();
+                    String balanceText = "¥"+MoneyTable.getBalanceOf(MainActivity.this, selected);
+                    handler.post(()-> Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
+                            .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected)).show()
+                    );
+                }).start())
                 .setView(v).create();
         v.findViewById(R.id.dialog_button).setOnClickListener(view -> dialog.dismiss());
         dialog.show();
@@ -496,6 +439,13 @@ public class MainActivity extends AppCompatActivity {
                 })
                 .setNeutralButton("取消", null)
                 .show();
+    }
+
+    /**
+     * メモリーした書き込み情報を再利用する
+     */
+    private void fn_memoryInsert(){
+        new AlertDialog.Builder(this).setMessage("建設中").show();
     }
 
     /**
@@ -533,7 +483,6 @@ public class MainActivity extends AppCompatActivity {
                         public void onClick(DialogInterface dialogInterface, int i) {
                             new Thread(()->{
                                 MoneyTable.deleteById(MainActivity.this, id);
-                                Log.d("checkTiming", "start reload");
                                 handler.post(()-> reload());
                             }).start();
                         }
@@ -542,7 +491,5 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
-
-
     }
 }

@@ -220,7 +220,6 @@ public class MoneyTable extends SQLiteOpenHelper {
             String QUERY_DELETE = "DELETE FROM " + getTodayTableName() + " WHERE _id=" + id;
             db.execSQL(QUERY_DELETE);
         }
-        Log.d("checkTiming", "deleteById end (削除)");
     }
 
     /**

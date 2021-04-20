@@ -1,15 +1,10 @@
 package com.example.moneycontrol;
 
-import android.content.Context;
 import android.database.Cursor;
-import android.os.AsyncTask;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
-
-import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -23,7 +18,7 @@ import java.util.Locale;
 public class myTool {
     /**
      * cursorからnullかもしれないStringの読み込み
-     * cursor.getString(i) -> getNullableString(cursor, i)
+     * cursor.getString(_interface) -> getNullableString(cursor, _interface)
      *
      * @param cursor
      * @param index
@@ -66,5 +61,39 @@ public class myTool {
             e.printStackTrace();
         }
         return rtn;
+    }
+
+    /**
+     * 関数を渡すために使うクラス 引数無し返り値void
+     *
+     * f();
+     * -->
+     * new myTool.MyFunc(new myTool.MyFunc._Interface() {
+     *     @Override
+     *     public void _function() {
+     *         f();
+     *     }
+     * }).fn_do();
+     * or
+     * new myTool.MyFunc(() -> f()).fn_do();
+     * or
+     * new myTool.MyFunc(this::f()).fn_do();
+     */
+    static class MyFunc {
+        private final _Interface _interface;
+        public interface _Interface { void _function();}
+
+        /**
+         * 関数を引数とする
+         * @param _interface interface: function to do
+         */
+        public MyFunc(_Interface _interface){this._interface = _interface;}
+
+        /**
+         * 関数の実行
+         */
+        public void fn_do(){
+            _interface._function();
+        }
     }
 }
