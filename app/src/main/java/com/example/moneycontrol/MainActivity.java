@@ -11,6 +11,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
 import android.view.Menu;
@@ -40,12 +41,14 @@ import androidx.preference.PreferenceManager;
 import com.example.moneycontrol.setting.SettingsActivity;
 import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
 import com.example.moneycontrol.sqliteopenhelper.InsertParams;
+import com.example.moneycontrol.sqliteopenhelper.MemoryParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.YearMonth;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -232,11 +235,22 @@ public class MainActivity extends AppCompatActivity {
                     iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, null);
                 } else {
                     //genre設定してiomButton
-                    String[] item = MoneySetting.getList(this, isIncome?0:1);
+                    List<String> item = MoneySetting.getList(this, isIncome?0:1);
                     new AlertDialog.Builder(this).setTitle(R.string.select_genre)
-                            .setItems(item, (dialogInterface, i) ->
-                                    MainActivity.this.iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, item[i])
+                            .setItems(item.toArray(new String[0]),
+                                    (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, item.get(i))
                             ).show();
+
+//                    SingleChoiceItems版
+//                    try(SQLiteDatabase db = MoneySetting.databaseNullCheck(this, null)){
+//                        int _i = isIncome ? 0 : 1;
+//                        String table = MoneySetting.TABLE_NAME[_i];
+//                        Cursor c = db.rawQuery(String.format("SELECT * FROM %s ORDER BY priority", table), null);
+//                        new AlertDialog.Builder(this).setTitle(R.string.select_genre)
+//                                .setSingleChoiceItems(c,-1,"name",(dialogInterface, i) ->
+//                                        MainActivity.this.iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, c.getString(1))
+//                                ).show();
+//                    }
                 }
                 btn.setText(isIncome ? R.string.button_income : R.string.button_outgo);
                 break;
@@ -391,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
         editMoney.getText().clear();
         editMemo.getText().clear();
         //spinnerにwalletを設定する
-        String[] LS = MoneySetting.getList(this, MoneySetting.WALLET);
+        List<String> LS = MoneySetting.getList(this, MoneySetting.WALLET);
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
 //        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
@@ -403,20 +417,25 @@ public class MainActivity extends AppCompatActivity {
 //    functionButtonに入れる機能
 
     private void fn_checkBalanceDialog(){
-        CharSequence[] walletList = MoneySetting.getList(this, MoneySetting.WALLET);
         final View v = this.getLayoutInflater().inflate(R.layout.dialog_button_close, null);
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setTitle("残額表示")
-                .setSingleChoiceItems(walletList, -1, (dialogInterface, i) -> new Thread(()->{
-                    String selected = walletList[i].toString();
-                    String balanceText = "¥"+MoneyTable.getBalanceOf(MainActivity.this, selected);
-                    handler.post(()-> Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
-                            .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected)).show()
-                    );
-                }).start())
-                .setView(v).create();
-        v.findViewById(R.id.dialog_button).setOnClickListener(view -> dialog.dismiss());
-        dialog.show();
+
+        try(SQLiteDatabase db = new MoneySetting(this).getWritableDatabase()) {
+            Cursor c = db.rawQuery(String.format("SELECT * FROM %s ORDER BY priority", MoneySetting.TABLE_NAME[MoneySetting.WALLET]), null);
+            AlertDialog _dialog = new AlertDialog.Builder(this)
+                    .setTitle("残額表示")
+                    .setSingleChoiceItems(c, -1, "name", (dialogInterface, i) -> new Thread(() -> {
+//                        自動的にカーソルが移動する
+                        String selected = c.getString(1);
+                        String balanceText = "¥" + MoneyTable.getBalanceOf(MainActivity.this, selected);
+                        handler.post(() -> Snackbar.make(v, balanceText, Snackbar.LENGTH_LONG)
+                                .setAction("残高調整", view -> fn_checkBalanceDialog_edit(selected)).show()
+                        );
+                    }).start())
+                    .setView(v).create();
+            v.findViewById(R.id.dialog_button).setOnClickListener(view -> _dialog.dismiss());
+            _dialog.show();
+        }
+
     }
 
     private void fn_checkBalanceDialog_edit(String wallet){
@@ -445,7 +464,54 @@ public class MainActivity extends AppCompatActivity {
      * メモリーした書き込み情報を再利用する
      */
     private void fn_memoryInsert(){
-        new AlertDialog.Builder(this).setMessage("建設中").show();
+        MemoryParams memoryParams = new MemoryParams(this);
+        try(SQLiteDatabase db = memoryParams.getDB()){
+            Cursor c = db.rawQuery(MemoryParams.QUERY_GET,null);
+            String[] list = memoryParams.getList(c);
+            c.close();
+            new AlertDialog.Builder(this).setTitle("メモリー")
+                    .setItems(list,(dialogInterface, i) -> {
+                        Cursor c2 = MoneyTable.getNewTimeData(db,-1);
+                        c2.moveToPosition(i);
+                        fn_memoryInsert_select(new InsertParams(c2));
+                    }).setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
+                    .setNeutralButton("閉じる",null)
+                    .show();
+        }
+    }
+
+    private void fn_memoryInsert_select(InsertParams insertParams){
+        insertParams.calendar = Calendar.getInstance();
+        int i = insertParams.income==null?0:insertParams.income;
+        int o = insertParams.outgo==null?0:insertParams.outgo;
+        insertParams.balance = MoneyTable.getBalanceOf(this,insertParams.wallet) + i - o;
+        Log.d("fn_memoryInsert_select",insertParams.toString());
+//        new AsyncInsert(this,this::reload)
+//                .execute(insertParams);
+    }
+    private void fn_memoryInsert_add(){
+        View v = getLayoutInflater().inflate(R.layout.memory_insert_add,null);
+        List<String> walletList = MoneySetting.getList(this,MoneySetting.WALLET);
+        List<String> genreList = MoneySetting.getList(this,MoneySetting.INCOME);
+        Spinner miaWallet = v.findViewById(R.id.MIA_wallet), miaGenre = v.findViewById(R.id.MIA_genre);
+        miaWallet.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,walletList));
+        genreList.add(0,"収入");
+        int boundary = genreList.size();
+        genreList.add("支出");
+        genreList.addAll(MoneySetting.getList(this,MoneySetting.OUTGO));
+        miaGenre.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,genreList));
+        new AlertDialog.Builder(this).setTitle("メモリー追加")
+                .setView(v)
+                .setPositiveButton("追加",(dialogInterface, i) -> {
+                    String m = ((EditText) v.findViewById(R.id.MIA_editMoney)).getText().toString();
+                    String w = miaWallet.getSelectedItem().toString();
+                    String g = miaGenre.getSelectedItem().toString();
+                    String n = ((EditText) v.findViewById(R.id.MIA_note)).getText().toString();
+                    boolean isIncome = miaGenre.getSelectedItemPosition() < boundary;
+
+                    Log.d("fn_memoryInsert_add#add", m+","+w+","+g+","+n+",isIncome="+String.valueOf(isIncome));
+                })
+                .setNeutralButton("閉じる",null).show();
     }
 
     /**

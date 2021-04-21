@@ -2,7 +2,7 @@
 
 ## apk
 
-[ここ!](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/release/app-release.apk)
+[ここ!](https://github.com/oha-yashi/MoneyControl_public/blob/master/app/release)
 
 スマホブラウザで開いて、`Download`をクリック。ダウンロードしたapkファイルを開いてインストール。セキュリティ的な何かを許可する必要があるかも。よろしく。
 

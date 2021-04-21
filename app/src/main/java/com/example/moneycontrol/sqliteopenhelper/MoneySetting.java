@@ -77,7 +77,7 @@ public class MoneySetting extends SQLiteOpenHelper {
      * @param item INCOME = 0, OUTGO = 1, WALLET = 2;
      * @return 要素一覧
      */
-    public static String[] getList(Context context, int item){
+    public static List<String> getList(Context context, int item){
         List<String> list = new ArrayList<>();
         String table = TABLE_NAME[item];
         try(SQLiteDatabase db = databaseNullCheck(context, null)){
@@ -92,6 +92,6 @@ public class MoneySetting extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        return list.toArray(new String[0]);
+        return list;
     }
 }

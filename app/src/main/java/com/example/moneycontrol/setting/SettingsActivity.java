@@ -29,6 +29,7 @@ import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -255,10 +256,10 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void editMoneySetting_Dialog(int item){
-            String[] list = MoneySetting.getList(requireContext(), item);
+            List<String> list = MoneySetting.getList(requireContext(), item);
             new AlertDialog.Builder(requireContext())
-                    .setItems(list, (dialogInterface, i) -> {
-                        editMoneySetting_editList(item, list[i]);
+                    .setItems(list.toArray(new String[0]), (dialogInterface, i) -> {
+                        editMoneySetting_editList(item, list.get(i));
                     })
                     .setPositiveButton("追加", (dialogInterface, i) -> {
                         editMoneySetting_addList(item);

@@ -38,6 +38,8 @@ public class InsertParams {
         this.note = note;
 
 //        Log.d("InsertParams", toString());
+//        int i = balance + (income==null?0:income) - (outgo==null?0:outgo);
+//        Log.d("test", String.valueOf(i));
     }
 
     public InsertParams(Cursor cursor){

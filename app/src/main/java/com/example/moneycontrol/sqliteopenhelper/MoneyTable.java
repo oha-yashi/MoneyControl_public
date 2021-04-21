@@ -130,11 +130,13 @@ public class MoneyTable extends SQLiteOpenHelper {
     /**
      * テーブルのTIMESTAMP新しい方から最大lines個SELECT*する
      * @param sqLiteDatabase db
-     * @param lines SELECT個数
+     * @param lines SELECT個数 -1 でLIMIT無し
      * @return Cursor
      */
     public static Cursor getNewTimeData(SQLiteDatabase sqLiteDatabase, int lines){
-        return sqLiteDatabase.rawQuery("SELECT * FROM "+TABLE_NAME+" ORDER BY timestamp DESC LIMIT "+lines, null);
+        String sql = "SELECT * FROM "+TABLE_NAME+" ORDER BY timestamp DESC";
+        if(lines>=0) sql += " LIMIT "+lines;
+        return sqLiteDatabase.rawQuery(sql, null);
     }
 
     /**
@@ -231,19 +233,18 @@ public class MoneyTable extends SQLiteOpenHelper {
      * @throws Exception 存在しないid
      */
     public static String toStringTableId(Context context, String tableName, int id) throws Exception {
-        StringBuilder builder = new StringBuilder("|");
+        String rtn;
         try (SQLiteDatabase db = newDatabase(context)){
             String QUERY = "SELECT * FROM " + tableName + " WHERE _id=" + id;
             Cursor cursor = db.rawQuery(QUERY, null);
+
+            if(cursor.getCount()==0)throw new Exception("存在しないidです");
+
             cursor.moveToFirst();
-            for(int i=0; i<cursor.getColumnCount(); i++)builder.append(cursor.getString(i)).append("|");
+            rtn = new InsertParams(cursor).toString();
             cursor.close();
-        }catch(Exception e){
-            e.printStackTrace();
-            builder.append("failed to find id:").append(id).append("|");
-            throw new Exception("存在しないidです");
         }
-        return builder.toString();
+        return rtn;
     }
 }
 
