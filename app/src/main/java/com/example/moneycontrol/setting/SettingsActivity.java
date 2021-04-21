@@ -110,8 +110,9 @@ public class SettingsActivity extends AppCompatActivity {
             });
 
             findPreference("csvImport").setOnPreferenceClickListener(preference -> {
-                deleteTable(requireContext());
+//                TODO:Activityのキャンセルでdeleteはしない
                 startActivity(new Intent(getActivity(), readCSV.class));
+                deleteTable(requireContext());
                 return false;
             });
 

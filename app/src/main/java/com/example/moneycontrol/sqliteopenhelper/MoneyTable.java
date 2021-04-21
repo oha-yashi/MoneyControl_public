@@ -27,6 +27,7 @@ public class MoneyTable extends SQLiteOpenHelper {
     private static String TABLE_NAME = getTodayTableName();
     public static String QUERY_SELECT_ALL(String tableName) {return "SELECT * FROM " + tableName;}
     public static String QUERY_CREATE(String tableName) {return "CREATE TABLE IF NOT EXISTS " + tableName + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
+    public static String QUERY_DELETE(String tableName, int id) {return "DELETE FROM " + tableName + " WHERE _id=" + id;}
     public static String QUERY_DROP(String tableName) {return "DROP TABLE " + tableName;}
 
     public static String getTodayTableName(){
@@ -129,12 +130,14 @@ public class MoneyTable extends SQLiteOpenHelper {
 
     /**
      * テーブルのTIMESTAMP新しい方から最大lines個SELECT*する
-     * @param sqLiteDatabase db
+     * @param context
+     * @param table_name
      * @param lines SELECT個数 -1 でLIMIT無し
      * @return Cursor
      */
-    public static Cursor getNewTimeData(SQLiteDatabase sqLiteDatabase, int lines){
-        String sql = "SELECT * FROM "+TABLE_NAME+" ORDER BY timestamp DESC";
+    public static Cursor getNewTimeData(Context context, String table_name, int lines){
+        SQLiteDatabase sqLiteDatabase = newDatabase(context);
+        String sql = "SELECT * FROM "+table_name+" ORDER BY timestamp DESC";
         if(lines>=0) sql += " LIMIT "+lines;
         return sqLiteDatabase.rawQuery(sql, null);
     }
@@ -219,8 +222,7 @@ public class MoneyTable extends SQLiteOpenHelper {
      */
     public static void deleteById(Context context, int id){
         try(SQLiteDatabase db = newDatabase(context)) {
-            String QUERY_DELETE = "DELETE FROM " + getTodayTableName() + " WHERE _id=" + id;
-            db.execSQL(QUERY_DELETE);
+            db.execSQL(QUERY_DELETE(getTodayTableName(),id));
         }
     }
 

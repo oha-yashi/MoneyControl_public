@@ -8,17 +8,18 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 public class MemoryParams {
-    private static final String MEMORY_TABLE_NAME = "memory_params";
+    public static final String MEMORY_TABLE_NAME = "memory_params";
 
     private final Context context;
 
     public static final String QUERY_GET = "SELECT * FROM "+MEMORY_TABLE_NAME+" ORDER BY timestamp DESC";
 
-    public MemoryParams(Context context){
-        Log.d("MemoryParams","Constructor");
+    public MemoryParams(Context context) {
+        Log.d("MemoryParams", "Constructor");
         this.context = context;
         MoneyTable.newDatabase(context).execSQL(MoneyTable.QUERY_CREATE(MEMORY_TABLE_NAME));
     }
@@ -26,6 +27,7 @@ public class MemoryParams {
     public void add(InsertParams insertParams){
         try(SQLiteDatabase db = MoneyTable.newDatabase(context)){
             db.execSQL(MoneyTable.QUERY_CREATE(MEMORY_TABLE_NAME));
+            db.insert(MEMORY_TABLE_NAME,null,insertParams.toContentValues());
         }
     }
 
@@ -33,17 +35,36 @@ public class MemoryParams {
         return MoneyTable.newDatabase(context);
     }
 
-    public String[] getList(Cursor c){
-        ArrayList<String> list = new ArrayList<>();
-        c.moveToFirst();
-        for(int i=0; i<c.getCount(); i++){
-            list.add(getListTextOf(new InsertParams(c)));
-            c.moveToNext();
+//    public Cursor getListCursor(){
+//        try(SQLiteDatabase sqLiteDatabase = getDB()){
+//            Cursor c = sqLiteDatabase.rawQuery(MemoryParams.QUERY_GET,null);
+//            return c;
+//        }
+//    }
+
+    public List<String> getList(){
+        List<String> list = new ArrayList<>();
+        try(SQLiteDatabase sqLiteDatabase = getDB()){
+            Cursor c = sqLiteDatabase.rawQuery(MemoryParams.QUERY_GET,null);
+            c.moveToFirst();
+            for(int i=0; i<c.getCount(); i++){
+                list.add(getListTextOf(new InsertParams(c)));
+                c.moveToNext();
+            }
+            c.close();
         }
-        return list.toArray(new String[0]);
+        return list;
     }
 
-    @Nullable public String getListTextOf(InsertParams insertParams){
+    public InsertParams getParams(int index){
+        try(SQLiteDatabase sqLiteDatabase = getDB()){
+            Cursor c = sqLiteDatabase.rawQuery(MemoryParams.QUERY_GET,null);
+            c.moveToPosition(index);
+            return new InsertParams(c);
+        }
+    }
+
+    @Nullable public static String getListTextOf(InsertParams insertParams){
         String note = insertParams.getCombinedNote();
         String rtn;
         if(insertParams.income > 0)rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);

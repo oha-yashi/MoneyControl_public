@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity {
                 wrapper.addView(tableLayout);
             });
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
-                Cursor cursor = MoneyTable.getNewTimeData(db, finalLimit);
+                Cursor cursor = MoneyTable.getNewTimeData(this, MoneyTable.getTodayTableName(), finalLimit);
 
                 //読み取り
                 cursor.moveToFirst();
@@ -465,19 +465,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private void fn_memoryInsert(){
         MemoryParams memoryParams = new MemoryParams(this);
-        try(SQLiteDatabase db = memoryParams.getDB()){
-            Cursor c = db.rawQuery(MemoryParams.QUERY_GET,null);
-            String[] list = memoryParams.getList(c);
-            c.close();
-            new AlertDialog.Builder(this).setTitle("メモリー")
-                    .setItems(list,(dialogInterface, i) -> {
-                        Cursor c2 = MoneyTable.getNewTimeData(db,-1);
-                        c2.moveToPosition(i);
-                        fn_memoryInsert_select(new InsertParams(c2));
-                    }).setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
-                    .setNeutralButton("閉じる",null)
-                    .show();
-        }
+        List<String> list = memoryParams.getList();
+        new AlertDialog.Builder(this).setTitle("メモリー")
+                .setItems(list.toArray(new String[0]),(dialogInterface, i) -> {
+                    fn_memoryInsert_select(memoryParams.getParams(i));
+                })
+                .setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
+                .setNegativeButton("削除",(dialogInterface, i) -> fn_memoryInsert_delete())
+                .setNeutralButton("閉じる",null)
+                .show();
     }
 
     private void fn_memoryInsert_select(InsertParams insertParams){
@@ -488,8 +484,15 @@ public class MainActivity extends AppCompatActivity {
         Log.d("fn_memoryInsert_select",insertParams.toString());
 //        new AsyncInsert(this,this::reload)
 //                .execute(insertParams);
+        new AlertDialog.Builder(this).setTitle("メモリー利用")
+                .setMessage(MemoryParams.getListTextOf(insertParams))
+                .setPositiveButton("登録",(dialogInterface, i1) -> {
+                    new AsyncInsert(this,this::reload).execute(insertParams);
+                })
+                .setNeutralButton("閉じる",null).show();
     }
     private void fn_memoryInsert_add(){
+        MemoryParams memoryParams = new MemoryParams(this);
         View v = getLayoutInflater().inflate(R.layout.memory_insert_add,null);
         List<String> walletList = MoneySetting.getList(this,MoneySetting.WALLET);
         List<String> genreList = MoneySetting.getList(this,MoneySetting.INCOME);
@@ -504,14 +507,35 @@ public class MainActivity extends AppCompatActivity {
                 .setView(v)
                 .setPositiveButton("追加",(dialogInterface, i) -> {
                     String m = ((EditText) v.findViewById(R.id.MIA_editMoney)).getText().toString();
+                    if(TextUtils.isEmpty(m))return;
                     String w = miaWallet.getSelectedItem().toString();
                     String g = miaGenre.getSelectedItem().toString();
                     String n = ((EditText) v.findViewById(R.id.MIA_note)).getText().toString();
                     boolean isIncome = miaGenre.getSelectedItemPosition() < boundary;
+                    int intMoney = Integer.parseInt(m);
+                    Integer income = isIncome ? intMoney : null;
+                    Integer outgo = isIncome ? null : intMoney;
 
-                    Log.d("fn_memoryInsert_add#add", m+","+w+","+g+","+n+",isIncome="+String.valueOf(isIncome));
+                    Log.d("fn_memoryInsert_add#add", m+","+w+","+g+","+n+",isIncome="+ isIncome);
+
+                    InsertParams insertParams = new InsertParams(null,income,outgo,MoneyTable.getBalanceOf(this,w),w,g,n);
+                    memoryParams.add(insertParams);
                 })
                 .setNeutralButton("閉じる",null).show();
+    }
+    private void fn_memoryInsert_delete(){
+        MemoryParams memoryParams = new MemoryParams(this);
+        List<String> list = memoryParams.getList();
+        new AlertDialog.Builder(this).setTitle("メモリー削除")
+                .setItems(list.toArray(new String[0]), (dialogInterface, i) -> {
+                    try(SQLiteDatabase db = memoryParams.getDB()) {
+                        Cursor cursor = db.rawQuery(MemoryParams.QUERY_GET, null);
+                        cursor.moveToPosition(i);
+                        int id = cursor.getInt(0);
+                        db.execSQL(MoneyTable.QUERY_DELETE(memoryParams.MEMORY_TABLE_NAME, id));
+                    }
+                })
+                .show();
     }
 
     /**
@@ -529,18 +553,19 @@ public class MainActivity extends AppCompatActivity {
                 if(getId==null || getId.isEmpty())return;
                 int intId = Integer.parseInt(getId);
 
-                fn_deleteById_confirmDialog(intId);
+                fn_deleteById_confirmDialog(MoneyTable.getTodayTableName(),intId);
 
             }).show();
     }
 
     /**
      * 実際に削除するダイアログ
+     * @param table_name 意味ない。
      * @param id 削除するデータのid
      */
-    private void fn_deleteById_confirmDialog(int id){
+    private void fn_deleteById_confirmDialog(String table_name, int id){
         try {
-            String message = MoneyTable.toStringTableId(this, MoneyTable.getTodayTableName(), id);
+            String message = MoneyTable.toStringTableId(this, table_name, id);
 
             new AlertDialog.Builder(this).setTitle("削除確認")
                     .setMessage(message)
