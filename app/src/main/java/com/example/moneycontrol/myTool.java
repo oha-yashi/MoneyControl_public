@@ -96,4 +96,9 @@ public class myTool {
             _interface._function();
         }
     }
+
+    public static String nullToSpace(Integer i){return i==null?" ":Integer.toString(i);}
+    public static String nullToSpace(String s){return TextUtils.isEmpty(s)?" ":s;}
+
+    public static boolean havePlusValue(Integer i){return i!=null && i>0;}
 }

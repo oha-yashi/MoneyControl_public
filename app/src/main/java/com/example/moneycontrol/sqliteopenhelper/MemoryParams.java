@@ -7,6 +7,8 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.example.moneycontrol.myTool;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -67,8 +69,8 @@ public class MemoryParams {
     @Nullable public static String getListTextOf(InsertParams insertParams){
         String note = insertParams.getCombinedNote();
         String rtn;
-        if(insertParams.income > 0)rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);
-        else if(insertParams.outgo > 0)rtn = String.format(Locale.US,"-%d for %s from %s",insertParams.outgo,note,insertParams.wallet);
+        if(myTool.havePlusValue(insertParams.income))rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);
+        else if(myTool.havePlusValue(insertParams.outgo))rtn = String.format(Locale.US,"-%d for %s from %s",insertParams.outgo,note,insertParams.wallet);
         else rtn = null;
         return rtn;
     }

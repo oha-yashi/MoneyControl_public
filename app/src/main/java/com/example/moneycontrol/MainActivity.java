@@ -354,8 +354,8 @@ public class MainActivity extends AppCompatActivity {
     private void setHistoryTable(TableLayout tableLayout, InsertParams params){
         String textStatus = params.getStatus();
         String textMoney =
-                params.income > 0 ? params.income.toString() :
-                params.outgo > 0 ? params.outgo.toString() : "";
+                myTool.havePlusValue(params.income) ? params.income.toString() :
+                myTool.havePlusValue(params.outgo) ? params.outgo.toString() : "";
         String textNote = params.getCombinedNote();
         Pair<?,?>[] set_TextGravity = new Pair[]{
                 Pair.create(myTool.toTimestamp(params.calendar),Gravity.START),

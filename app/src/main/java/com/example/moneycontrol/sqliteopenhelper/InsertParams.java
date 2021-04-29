@@ -26,6 +26,11 @@ public class InsertParams {
     public String genre;
     public String note;
 
+    private void zeroToNull(){
+        if(income == 0)income = null;
+        if(outgo == 0)outgo = null;
+    }
+
     public InsertParams(@Nullable Calendar calendar,
                         @Nullable Integer income, @Nullable Integer outgo, Integer balance,
                         String wallet, String genre, String note){
@@ -51,16 +56,19 @@ public class InsertParams {
         this.wallet = myTool.getNullableString(cursor, 5);
         this.genre = myTool.getNullableString(cursor, 6);
         this.note = myTool.getNullableString(cursor, 7);
+
+        zeroToNull();
     }
 
     public String toString(){
+        Log.d("InsertParams.toString","income="+income);
         return myTool.toTimestamp(calendar) + "," +
-                income + "," +
-                outgo + "," +
+                myTool.nullToSpace(income) + "," +
+                myTool.nullToSpace(outgo) + "," +
                 balance + "," +
                 wallet + "," +
-                genre + "," +
-                note;
+                myTool.nullToSpace(genre) + "," +
+                myTool.nullToSpace(note);
     }
 
     public ContentValues toContentValues(){
@@ -76,8 +84,8 @@ public class InsertParams {
     }
 
     public String getStatus(){
-        return this.income > 0 ? "△" :
-                this.outgo > 0 ? "▼" : "";
+        return myTool.havePlusValue(income) ? "△" :
+                myTool.havePlusValue(outgo) ? "▼" : "";
     }
 
     public String getCombinedNote(){

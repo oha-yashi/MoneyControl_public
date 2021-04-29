@@ -49,7 +49,7 @@ public class setting_showall extends AppCompatActivity {
                 for(int j=0; j<=5; j++){
                     tv = new TextView(this);
                     String getS = c.getString(j);
-                    tv.setText(getS==null?"":getS);
+                    tv.setText(myTool.nullToSpace(getS));
 
                     try {
                         tv.setLayoutParams(LP);

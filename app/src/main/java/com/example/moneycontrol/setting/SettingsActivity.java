@@ -51,9 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .commit();
         }
         ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }
+//        if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true); //アクションバーに戻る矢印を出す
         handler = new Handler(Looper.getMainLooper());
     }
 
@@ -231,7 +229,7 @@ public class SettingsActivity extends AppCompatActivity {
                     if (isMarkdown) exportText.append("|");
                     for (int j = 0; j < columns; j++) {
                         String getS = cursor.getString(j);
-                        exportText.append(TextUtils.isEmpty(getS) ? " " : getS);
+                        exportText.append(myTool.nullToSpace(getS));
                         if (isCSV) exportText.append(",");
                         if (isMarkdown) exportText.append("|");
                     }
