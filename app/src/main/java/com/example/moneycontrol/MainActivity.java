@@ -405,10 +405,12 @@ public class MainActivity extends AppCompatActivity {
     public void reload(boolean resetSpin){
         editMoney.getText().clear();
         editMemo.getText().clear();
-        //spinnerにwalletを設定する
-        List<String> LS = MoneySetting.getList(this, MoneySetting.WALLET).second;
-        spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
-        spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+        if(resetSpin) {
+            //spinnerにwalletを設定する
+            List<String> LS = MoneySetting.getList(this, MoneySetting.WALLET).second;
+            spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+            spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
+        }
 //        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
         String strLimit = PreferenceManager.getDefaultSharedPreferences(this).getString("main_readData_limit", "10");
         readData(Integer.parseInt(strLimit));
@@ -471,8 +473,8 @@ public class MainActivity extends AppCompatActivity {
                 .setItems(list.toArray(new String[0]),(dialogInterface, i) -> {
                     fn_memoryInsert_select(memoryParams.getParams(i));
                 })
-//                .setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
-//                .setNegativeButton("削除",(dialogInterface, i) -> fn_memoryInsert_delete())
+                .setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
+                .setNegativeButton("削除",(dialogInterface, i) -> fn_memoryInsert_delete())
                 .setNeutralButton("閉じる",null)
                 .show();
     }
@@ -519,7 +521,7 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.d("fn_memoryInsert_add#add", m+","+w+","+g+","+n+",isIncome="+ isIncome);
 
-                    InsertParams insertParams = new InsertParams(null,income,outgo,MoneyTable.getBalanceOf(this,w),w,g,n);
+                    InsertParams insertParams = new InsertParams(null,income,outgo,null,w,g,n);
                     memoryParams.add(insertParams);
                 })
                 .setNeutralButton("閉じる",null).show();
