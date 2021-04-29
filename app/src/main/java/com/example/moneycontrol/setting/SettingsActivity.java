@@ -49,7 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .replace(R.id.settings, new SettingsFragment())
                     .commit();
         }
-        ActionBar actionBar = getSupportActionBar();
+//        ActionBar actionBar = getSupportActionBar();
 //        if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true); //アクションバーに戻る矢印を出す
         handler = new Handler(Looper.getMainLooper());
     }
