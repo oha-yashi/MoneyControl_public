@@ -13,6 +13,7 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -28,8 +29,11 @@ import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
 
+import org.w3c.dom.Text;
+
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 
@@ -110,9 +114,8 @@ public class SettingsActivity extends AppCompatActivity {
             });
 
             findPreference("csvImport").setOnPreferenceClickListener(preference -> {
-//                TODO:Activityのキャンセルでdeleteはしない
                 startActivity(new Intent(getActivity(), readCSV.class));
-                deleteTable(requireContext());
+//                deleteTable(requireContext()); //readCSVの中でやる
                 return false;
             });
 
@@ -257,7 +260,7 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         private void editMoneySetting_Dialog(int item){
-            List<String> list = MoneySetting.getList(requireContext(), item);
+            List<String> list = MoneySetting.getList(requireContext(), item).second;
             new AlertDialog.Builder(requireContext())
                     .setItems(list.toArray(new String[0]), (dialogInterface, i) -> {
                         editMoneySetting_editList(item, list.get(i));
@@ -268,21 +271,35 @@ public class SettingsActivity extends AppCompatActivity {
                     .setNeutralButton("閉じる", null).show();
         }
 
-        private void editMoneySetting_editList(int item, String name){
-            EditText editText = new EditText(requireContext());
-            editText.setText(name);
+        private void editMoneySetting_editList(int item, String name_priority){
+            final View v = this.getLayoutInflater().inflate(R.layout.editmoneysetting_editlist,null);
+            EditText p = v.findViewById(R.id.MS_priority);
+            EditText n = v.findViewById(R.id.MS_name);
+            String name = name_priority.split(":")[1];
+            String pri = name_priority.split(":")[0];
+            if(Objects.equals(pri, "null"))pri="-1";
+            p.setText(pri);
+            n.setText(name);
+            int p_from = Integer.parseInt(pri);
+
             new AlertDialog.Builder(requireContext()).setTitle("項目編集")
-                    .setView(editText)
+                    .setView(v)
                     .setPositiveButton("変更", (dialogInterface, i) -> {
-                        if(TextUtils.isEmpty(editText.getText()))return;
+                        if(TextUtils.isEmpty(n.getText()) || TextUtils.isEmpty(p.getText()))return;
+                        int p_to = Integer.parseInt(p.getText().toString());
                         try(SQLiteDatabase db = new MoneySetting(requireContext()).getWritableDatabase()){
-                            db.execSQL(MoneySetting.QUERY_UPDATE(item, name, editText.getText().toString()));
+                            if(p_from!=p_to) for(String q:MoneySetting.QUERY_MOVE_PRIORITY(item,name,p_from,p_to)) {
+                                Log.d("SA.editMoneySetting_editList",q);
+                                db.execSQL(q);
+                            }
+                            db.execSQL(MoneySetting.QUERY_UPDATE(item, name, n.getText().toString()));
                         }
                     })
                     .setNegativeButton("削除",(dialogInterface, i) -> {
-                        if(TextUtils.isEmpty(editText.getText()))return;
+                        if(TextUtils.isEmpty(n.getText()))return;
                         try(SQLiteDatabase db = new MoneySetting(requireContext()).getWritableDatabase()){
-                            db.execSQL(MoneySetting.QUERY_DELETE(item, editText.getText().toString()));
+                            String q = String.format(Locale.US,"UPDATE %s ",MoneySetting.TABLE_NAME[item]);
+                            db.execSQL(MoneySetting.QUERY_DELETE(item, n.getText().toString()));
                         }
                     })
                     .setNeutralButton("閉じる",null).show();
@@ -297,6 +314,7 @@ public class SettingsActivity extends AppCompatActivity {
                         try(SQLiteDatabase db = new MoneySetting(requireContext()).getWritableDatabase()){
                             ContentValues cv = new ContentValues();
                             cv.put("name", editText.getText().toString());
+                            cv.put("priority",99);
                             db.insert(MoneySetting.TABLE_NAME[item],null,cv);
                         }
                     })

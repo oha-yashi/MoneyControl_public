@@ -6,11 +6,13 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class MoneySetting extends SQLiteOpenHelper {
     private static final String TAG = "MSOH";
@@ -33,6 +35,16 @@ public class MoneySetting extends SQLiteOpenHelper {
     public static String QUERY_CREATE(int i){ return "CREATE TABLE "+ TABLE_NAME[i] +" (_id INTEGER primary key autoincrement, name TEXT, priority INTEGER)"; }
     public static String QUERY_UPDATE(int i, String from, String to){return String.format("UPDATE %s SET name='%s' WHERE name='%s' ", TABLE_NAME[i],to,from);}
     public static String QUERY_DELETE(int i, String name){return String.format("DELETE FROM %s WHERE name='%s'", TABLE_NAME[i],name);}
+    public static String[] QUERY_MOVE_PRIORITY(int i, String name, int from, int to){
+        int move_other = from > to ? 1 : -1;
+        int st = Integer.min(from,to);
+        int en = Integer.max(from,to);
+        return new String[]{
+                String.format(Locale.US,"UPDATE %s SET priority=priority+(%d) WHERE priority>=%d AND priority<%d",
+                        TABLE_NAME[i], move_other, st, en),
+                String.format(Locale.US,"UPDATE %s SET priority=%d WHERE name='%s'",TABLE_NAME[i],to,name)
+        };
+    }
 
     public MoneySetting(@Nullable Context context) { super(context, DATABASE_NAME, null, DATABASE_VERSION); }
 
@@ -72,19 +84,21 @@ public class MoneySetting extends SQLiteOpenHelper {
     }
 
     /**
-     *
+     * get List by priority
      * @param context this
      * @param item INCOME = 0, OUTGO = 1, WALLET = 2;
      * @return 要素一覧
      */
-    public static List<String> getList(Context context, int item){
-        List<String> list = new ArrayList<>();
+    public static Pair<List<Integer>,List<String>> getList(Context context, int item){
+        List<Integer> listInt = new ArrayList<>();
+        List<String> listStr = new ArrayList<>();
         String table = TABLE_NAME[item];
         try(SQLiteDatabase db = databaseNullCheck(context, null)){
-            Cursor c = db.rawQuery(String.format("SELECT name FROM %s ORDER BY priority", table), null);
+            Cursor c = db.rawQuery(String.format("SELECT * FROM %s ORDER BY priority", table), null);
             c.moveToFirst();
             for(int i=0; i<c.getCount(); i++){
-                list.add(c.getString(0));
+                listInt.add(c.getInt(2));
+                listStr.add(c.getString(1));
                 c.moveToNext();
             }
             c.close();
@@ -92,6 +106,6 @@ public class MoneySetting extends SQLiteOpenHelper {
             e.printStackTrace();
         }
 
-        return list;
+        return Pair.create(listInt,listStr);
     }
 }

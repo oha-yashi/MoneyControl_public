@@ -47,6 +47,7 @@ import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -235,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
                     iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, null);
                 } else {
                     //genre設定してiomButton
-                    List<String> item = MoneySetting.getList(this, isIncome?0:1);
+                    List<String> item = MoneySetting.getList(this, isIncome?0:1).second;
                     new AlertDialog.Builder(this).setTitle(R.string.select_genre)
                             .setItems(item.toArray(new String[0]),
                                     (dialogInterface, i) -> MainActivity.this.iomButton(isIncome ? IOM_INCOME : IOM_OUTGO, item.get(i))
@@ -405,7 +406,7 @@ public class MainActivity extends AppCompatActivity {
         editMoney.getText().clear();
         editMemo.getText().clear();
         //spinnerにwalletを設定する
-        List<String> LS = MoneySetting.getList(this, MoneySetting.WALLET);
+        List<String> LS = MoneySetting.getList(this, MoneySetting.WALLET).second;
         spnWallet.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
         spnWallet2.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, LS));
 //        ((LinearLayout) findViewById(R.id.tableWrapper)).removeAllViews();
@@ -470,8 +471,8 @@ public class MainActivity extends AppCompatActivity {
                 .setItems(list.toArray(new String[0]),(dialogInterface, i) -> {
                     fn_memoryInsert_select(memoryParams.getParams(i));
                 })
-                .setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
-                .setNegativeButton("削除",(dialogInterface, i) -> fn_memoryInsert_delete())
+//                .setPositiveButton("追加",(dialogInterface, i) -> fn_memoryInsert_add())
+//                .setNegativeButton("削除",(dialogInterface, i) -> fn_memoryInsert_delete())
                 .setNeutralButton("閉じる",null)
                 .show();
     }
@@ -494,14 +495,14 @@ public class MainActivity extends AppCompatActivity {
     private void fn_memoryInsert_add(){
         MemoryParams memoryParams = new MemoryParams(this);
         View v = getLayoutInflater().inflate(R.layout.memory_insert_add,null);
-        List<String> walletList = MoneySetting.getList(this,MoneySetting.WALLET);
-        List<String> genreList = MoneySetting.getList(this,MoneySetting.INCOME);
+        List<String> walletList = MoneySetting.getList(this,MoneySetting.WALLET).second;
+        List<String> genreList = MoneySetting.getList(this,MoneySetting.INCOME).second;
         Spinner miaWallet = v.findViewById(R.id.MIA_wallet), miaGenre = v.findViewById(R.id.MIA_genre);
         miaWallet.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,walletList));
         genreList.add(0,"収入");
         int boundary = genreList.size();
         genreList.add("支出");
-        genreList.addAll(MoneySetting.getList(this,MoneySetting.OUTGO));
+        genreList.addAll(MoneySetting.getList(this,MoneySetting.OUTGO).second);
         miaGenre.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,genreList));
         new AlertDialog.Builder(this).setTitle("メモリー追加")
                 .setView(v)

@@ -1,8 +1,8 @@
 package com.example.moneycontrol.setting;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -10,8 +10,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
+import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.BufferedReader;
@@ -58,6 +58,7 @@ public class readCSV extends Activity {
             if (resultData != null) {
                 uri = resultData.getData();
                 try {
+                    deleteTable(this);
                     getCsvFromUri(uri);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -112,5 +113,13 @@ public class readCSV extends Activity {
             e.printStackTrace();
         }
         return true;
+    }
+
+    private void deleteTable(Context context){
+        String tableName = MoneyTable.getTodayTableName();
+        try(SQLiteDatabase sqLiteDatabase = MoneyTable.newDatabase(context)) {
+            sqLiteDatabase.execSQL(MoneyTable.QUERY_DROP(tableName));
+            sqLiteDatabase.execSQL(MoneyTable.QUERY_CREATE(tableName));
+        }
     }
 }
