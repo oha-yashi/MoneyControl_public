@@ -208,12 +208,12 @@ public class SettingsActivity extends AppCompatActivity {
                 //                getActivityでfragmentの所属するActivityが返るので実質this
                 Cursor cursor = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(table_name), null);
 
-//                コメント行: タイトル
-                exportText.append("# "+table_name);
-
-                if (isCSV)
+                if (isCSV) {
+                    exportText.append("#"+table_name+"\n");
                     exportText.append(String.join(",", cursor.getColumnNames())).append("\n");
+                }
                 if (isMarkdown) {
+                    exportText.append("# "+table_name+"\n");
                     exportText.append("|").append(String.join("|", cursor.getColumnNames())).append("|\n")
                             .append("|--:|---|--:|--:|--:|:-:|:-:|:--|\n");
                 }
