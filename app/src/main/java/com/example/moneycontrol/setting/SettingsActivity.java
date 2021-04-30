@@ -209,7 +209,7 @@ public class SettingsActivity extends AppCompatActivity {
                 Cursor cursor = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(table_name), null);
 
                 if (isCSV) {
-                    exportText.append("#"+table_name+"\n");
+                    exportText.append("#").append(table_name).append("\n");
                     exportText.append(String.join(",", cursor.getColumnNames())).append("\n");
                 }
                 if (isMarkdown) {

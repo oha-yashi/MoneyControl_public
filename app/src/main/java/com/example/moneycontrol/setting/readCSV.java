@@ -87,7 +87,7 @@ public class readCSV extends Activity {
             boolean isFirstLine = true; //これが立っている時はカラム名行の読み込み
             String[] columns = MoneyTable.getColumnsArray();
             while ((line = reader.readLine()) != null) {
-                if(line.startsWith("#"))break; //コメント行読み飛ばし
+                if(line.startsWith("#"))continue; //コメント行読み飛ばし
                 if(isFirstLine){
                     // 1行目の読み込み
                     if(line.equals(MoneyTable.getColumnsJoined())){
