@@ -47,7 +47,6 @@ import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -178,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
                 .setNeutralButton("閉じる",null)
                 .show());
         reload();
+        myTool.MyLog.d();
     }
     //End of OnCreate
 
@@ -354,8 +354,8 @@ public class MainActivity extends AppCompatActivity {
     private void setHistoryTable(TableLayout tableLayout, InsertParams params){
         String textStatus = params.getStatus();
         String textMoney =
-                myTool.havePlusValue(params.income) ? params.income.toString() :
-                myTool.havePlusValue(params.outgo) ? params.outgo.toString() : "";
+                myTool.isHavePlusValue(params.income) ? params.income.toString() :
+                myTool.isHavePlusValue(params.outgo) ? params.outgo.toString() : "";
         String textNote = params.getCombinedNote();
         Pair<?,?>[] set_TextGravity = new Pair[]{
                 Pair.create(myTool.toTimestamp(params.calendar),Gravity.START),
@@ -419,6 +419,9 @@ public class MainActivity extends AppCompatActivity {
 
 //    functionButtonに入れる機能
 
+    /**
+     * 残高確認
+     */
     private void fn_checkBalanceDialog(){
         final View v = this.getLayoutInflater().inflate(R.layout.dialog_button_close, null);
 

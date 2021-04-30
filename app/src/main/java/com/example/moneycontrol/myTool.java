@@ -2,6 +2,7 @@ package com.example.moneycontrol;
 
 import android.database.Cursor;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -100,5 +101,23 @@ public class myTool {
     public static String nullToSpace(Integer i){return i==null?" ":Integer.toString(i);}
     public static String nullToSpace(String s){return TextUtils.isEmpty(s)?" ":s;}
 
-    public static boolean havePlusValue(Integer i){return i!=null && i>0;}
+    public static boolean isHavePlusValue(Integer i){return i!=null && i>0;}
+
+    /**
+     * Logging with source data
+     * http://ytch.hatenablog.com/entry/2013/08/05/203930
+     * https://qiita.com/Qui/items/467bb09211772e343c59
+     */
+    public static class MyLog {
+        public static void d(String msg){
+            if(!BuildConfig.DEBUG)return;
+            StackTraceElement calledClass = Thread.currentThread().getStackTrace()[3];
+            String tag = "MyLog " + calledClass.getFileName() + "." + calledClass.getMethodName() + "(" + calledClass.getLineNumber() + ")";
+            Log.d(tag, msg);
+        }
+
+        public static void d(){
+            d("Logging!!");
+        }
+    }
 }

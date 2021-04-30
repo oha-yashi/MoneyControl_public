@@ -2,7 +2,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <Preference
-        android:key="show_all_button"
+        android:key="show_all"
         android:title="全体表示" />
 
     <EditTextPreference
@@ -25,6 +25,11 @@
         <Preference
             android:key="delete"
             android:title="テーブル削除" />
+
+        <Preference
+            android:key="get_balance"
+            android:title="残高引継ぎ"
+            android:summary="前月から指定したwalletの残高を引継ぎます"/>
 
     </PreferenceCategory>
 

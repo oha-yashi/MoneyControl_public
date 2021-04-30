@@ -92,6 +92,23 @@ public class MoneyTable extends SQLiteOpenHelper {
         return String.join(",", getColumnsArray());
     }
 
+    /**
+     * how many `target` in `column` of `table`
+     * @param table
+     * @param column
+     * @param target
+     * @return count
+     */
+    public static int countData(Context context, String table, String column, String target){
+        int count = 0;
+        try(SQLiteDatabase db = newDatabase(context)){
+            Cursor cursor = db.query(table,new String[]{column},column+" = ?",new String[]{target},null,null,null);
+            count = cursor.getCount();
+            cursor.close();
+        }
+        return count;
+    }
+
     public MoneyTable(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -145,13 +162,14 @@ public class MoneyTable extends SQLiteOpenHelper {
     /**
      * walletの残高を出す
      * @param context this
+     * @param table
      * @param wallet
      * @return balance of wallet
      */
-    public static int getBalanceOf(Context context, String wallet){
+    public static int getBalanceOf(Context context, String table, String wallet){
         int rtn = 0;
         try(SQLiteDatabase sqLiteDatabase = newDatabase(context)){
-            Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+TABLE_NAME+" WHERE wallet=? ORDER BY timestamp DESC LIMIT 1", new String[]{wallet});
+            Cursor cursor = sqLiteDatabase.rawQuery("SELECT balance FROM "+table+" WHERE wallet=? ORDER BY timestamp DESC LIMIT 1", new String[]{wallet});
             cursor.moveToFirst();
             rtn = cursor.getCount()==1 ? cursor.getInt(0) : 0;
             cursor.close();
@@ -159,6 +177,10 @@ public class MoneyTable extends SQLiteOpenHelper {
         } finally {
             return rtn;
         }
+    }
+
+    public static int getBalanceOf(Context context, String wallet){
+        return getBalanceOf(context,TABLE_NAME,wallet);
     }
 
     /**

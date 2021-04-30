@@ -69,8 +69,8 @@ public class MemoryParams {
     @Nullable public static String getListTextOf(InsertParams insertParams){
         String note = insertParams.getCombinedNote();
         String rtn;
-        if(myTool.havePlusValue(insertParams.income))rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);
-        else if(myTool.havePlusValue(insertParams.outgo))rtn = String.format(Locale.US,"-%d for %s from %s",insertParams.outgo,note,insertParams.wallet);
+        if(myTool.isHavePlusValue(insertParams.income))rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);
+        else if(myTool.isHavePlusValue(insertParams.outgo))rtn = String.format(Locale.US,"-%d for %s from %s",insertParams.outgo,note,insertParams.wallet);
         else rtn = null;
         return rtn;
     }

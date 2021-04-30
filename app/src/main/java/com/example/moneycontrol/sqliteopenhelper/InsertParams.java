@@ -9,7 +9,6 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.moneycontrol.MainActivity;
 import com.example.moneycontrol.myTool;
 
 import java.util.Calendar;
@@ -84,8 +83,8 @@ public class InsertParams {
     }
 
     public String getStatus(){
-        return myTool.havePlusValue(income) ? "△" :
-                myTool.havePlusValue(outgo) ? "▼" : "";
+        return myTool.isHavePlusValue(income) ? "△" :
+                myTool.isHavePlusValue(outgo) ? "▼" : "";
     }
 
     public String getCombinedNote(){
@@ -102,7 +101,7 @@ public class InsertParams {
             @NonNull Integer balance1, @NonNull Integer balance2,
             @NonNull String wallet1, @NonNull String wallet2,
             @Nullable String noteByGenre){
-        Log.d("makeMoveParams", "run");
+        myTool.MyLog.d();
         Calendar c1 = calendar==null ? Calendar.getInstance() : calendar;
         Calendar c2 = Calendar.getInstance();
         c2.setTime(c1.getTime());

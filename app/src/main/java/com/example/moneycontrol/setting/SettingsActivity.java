@@ -29,6 +29,8 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.example.moneycontrol.myTool;
+import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
+import com.example.moneycontrol.sqliteopenhelper.InsertParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
@@ -37,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Predicate;
 
 
 public class SettingsActivity extends AppCompatActivity {
@@ -62,7 +65,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
-            findPreference("show_all_button").setOnPreferenceClickListener(preference -> {
+            findPreference("show_all").setOnPreferenceClickListener(preference -> {
                 startActivity(new Intent(getContext(), setting_showall.class));
                 return false;
             });
@@ -129,6 +132,8 @@ public class SettingsActivity extends AppCompatActivity {
                 return false;
             });
 
+            findPreference("get_balance").setOnPreferenceClickListener(preference -> get_balance());
+
             /*
                 選択項目編集
              */
@@ -138,7 +143,7 @@ public class SettingsActivity extends AppCompatActivity {
                 public boolean onPreferenceClick(Preference preference) {
                     int itemNum;
                     for(itemNum = MoneySetting.INCOME; itemNum<=MoneySetting.OUTGO; itemNum++)if(preference.getKey().equals(MoneySetting.TABLE_NAME[itemNum]))break;
-                    Log.d("itemNum", String.valueOf(itemNum));
+                    myTool.MyLog.d(String.valueOf(itemNum));
                     editMoneySetting_Dialog(itemNum);
                     return false;
                 }
@@ -152,9 +157,7 @@ public class SettingsActivity extends AppCompatActivity {
 
             new Thread(()->{
                 String getTodayTableName = MoneyTable.getTodayTableName();
-                handler.post(()->{
-                    findPreference("database_table").setSummary(getTodayTableName);
-                });
+                handler.post(()-> findPreference("database_table").setSummary(getTodayTableName));
             }).start();
 
 //            テストスペース
@@ -200,7 +203,7 @@ public class SettingsActivity extends AppCompatActivity {
             StringBuilder exportText = new StringBuilder();
             boolean isCSV = type.equals("csv");
             boolean isMarkdown = type.equals("markdown");
-            Log.d("textExport", type);
+            myTool.MyLog.d(type);
             new Thread(() -> {
                 sendIntent.setAction(Intent.ACTION_SEND);
 
@@ -314,6 +317,41 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     })
                     .setNeutralButton("閉じる",null).show();
+        }
+
+        private boolean get_balance(){
+            Context context = requireContext();
+            Calendar c = Calendar.getInstance();
+            String tableNow = MoneyTable.getCalendarTableName(c);
+            c.add(Calendar.MONTH,-1);
+            String tablePre = MoneyTable.getCalendarTableName(c);
+            List<String> wallets = MoneySetting.getList(context, 2).second;
+            List<Integer> list = new ArrayList<>();
+            new AlertDialog.Builder(context).setTitle(tablePre+" -> "+tableNow)
+                .setMultiChoiceItems(wallets.toArray(new CharSequence[0]), null, new DialogInterface.OnMultiChoiceClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+                        if(b)list.add(i);
+                        if(!b)list.removeIf(Predicate.isEqual(i));
+                    }
+                })
+                .setPositiveButton("実行",(dialogInterface, i) -> {
+                    for(int ii:list){
+                        String selected_wallet = wallets.get(ii);
+//                                Log.d("get_balance",selected_wallet);
+                        int nowHaveData = MoneyTable.countData(context,tableNow,"wallet",selected_wallet);
+                        int preHaveData = MoneyTable.countData(context,tablePre,"wallet",selected_wallet);
+//                                Log.d("get_balance",String.format(Locale.US,"now=%d,pre=%d",nowHaveData,preHaveData));
+                        if(nowHaveData==0 && preHaveData>0){
+                            int pre_balance = MoneyTable.getBalanceOf(context,tablePre,selected_wallet);
+                            new AsyncInsert(context, null).execute(new InsertParams(
+                                    null,null,null,pre_balance,
+                                    selected_wallet,"残高調整", "from " + tablePre
+                            ));
+                        }
+                    }
+                }).show();
+            return false;
         }
     }
 }
