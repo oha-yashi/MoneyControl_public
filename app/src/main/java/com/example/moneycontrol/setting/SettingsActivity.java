@@ -207,6 +207,10 @@ public class SettingsActivity extends AppCompatActivity {
                 SQLiteDatabase db = MoneyTable.newDatabase(getActivity());
                 //                getActivityでfragmentの所属するActivityが返るので実質this
                 Cursor cursor = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(table_name), null);
+
+//                コメント行: タイトル
+                exportText.append("# "+table_name);
+
                 if (isCSV)
                     exportText.append(String.join(",", cursor.getColumnNames())).append("\n");
                 if (isMarkdown) {
