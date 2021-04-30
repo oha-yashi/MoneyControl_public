@@ -52,7 +52,7 @@ public class MoneyTable extends SQLiteOpenHelper {
         return stringBuilder.toString();
     }
 
-    public static String[] getMoneyTableNames(Context context){
+    public static List<String> getMoneyTableNames(Context context){
         String QUERY_GET_TABLES = "SELECT name FROM sqlite_master WHERE type ='table' AND name LIKE 'Y%M%'";
         List<String> rtn = new ArrayList<>();
         try(SQLiteDatabase db = newDatabase(context)){
@@ -64,7 +64,7 @@ public class MoneyTable extends SQLiteOpenHelper {
             }
             cursor.close();
         }
-        return rtn.toArray(new String[0]);
+        return rtn;
     }
 
     /**

@@ -15,7 +15,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -91,22 +94,32 @@ public class SettingsActivity extends AppCompatActivity {
             });
 
             findPreference("export").setOnPreferenceClickListener(preference -> {
-                String[] list = new String[]{"csv", "markdown"};
-                final int[] selected = {-1};
-                new AlertDialog.Builder(requireContext()).setTitle("エクスポート")
-                        .setSingleChoiceItems( //setMessageは共存できない
-                        list, selected[0], new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                selected[0] = i;
-                            }
+                Spinner s = new Spinner(requireContext());
+                s.setAdapter(new ArrayAdapter<>(
+                        requireContext(),
+                        R.layout.support_simple_spinner_dropdown_item,
+                        MoneyTable.getMoneyTableNames(requireContext())
+                ));
+                new AlertDialog.Builder(requireContext()).setTitle("テーブル選択").setView(s)
+                        .setPositiveButton("選択",(dialogInterface, i) -> {
+                            String[] list = new String[]{"csv", "markdown"};
+                            final int[] selected = {-1};
+                            new AlertDialog.Builder(requireContext()).setTitle("エクスポート")
+                                    .setSingleChoiceItems( //setMessageは共存できない
+                                            list, selected[0], new DialogInterface.OnClickListener() {
+                                                @Override
+                                                public void onClick(DialogInterface dialogInterface, int i) {
+                                                    selected[0] = i;
+                                                }
+                                            })
+                                    .setPositiveButton("決定", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            textExport(list[selected[0]], ((String) s.getSelectedItem()));
+                                        }
+                                    }).show();
                         })
-                        .setPositiveButton("決定", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                textExport(list[selected[0]]);
-                            }
-                        }).show();
+                        .show();
                 return false;
             });
 
@@ -181,7 +194,7 @@ public class SettingsActivity extends AppCompatActivity {
          * 現在のテーブルの書き出し
          * @param type "csv", "markdown"
          */
-        private void textExport(String type) {
+        private void textExport(String type, String table_name) {
             // https://developer.android.com/training/sharing/send?hl=ja
             Intent sendIntent = new Intent();
             StringBuilder exportText = new StringBuilder();
@@ -193,7 +206,7 @@ public class SettingsActivity extends AppCompatActivity {
 
                 SQLiteDatabase db = MoneyTable.newDatabase(getActivity());
                 //                getActivityでfragmentの所属するActivityが返るので実質this
-                Cursor cursor = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(MoneyTable.getTodayTableName()), null);
+                Cursor cursor = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(table_name), null);
                 if (isCSV)
                     exportText.append(String.join(",", cursor.getColumnNames())).append("\n");
                 if (isMarkdown) {

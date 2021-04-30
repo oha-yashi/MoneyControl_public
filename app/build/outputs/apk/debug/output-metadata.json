@@ -10,8 +10,8 @@
     {
       "type": "SINGLE",
       "filters": [],
-      "versionCode": 54,
-      "versionName": "1.8.6.93",
+      "versionCode": 55,
+      "versionName": "1.8.7",
       "outputFile": "app-debug.apk"
     }
   ]
