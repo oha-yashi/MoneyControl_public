@@ -52,6 +52,7 @@ public class setting_showall extends AppCompatActivity {
         new Thread(()->{
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
                 TableLayout table = findViewById(R.id.tableALL);
+                table.removeAllViews();
                 TextView tv;
 
                 Cursor c = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(table_name), null);
@@ -113,10 +114,9 @@ public class setting_showall extends AppCompatActivity {
         return true;
     }
     @Override public boolean onOptionsItemSelected(MenuItem item){
-        switch(item.getItemId()){
-            case R.id.show_all_select:{
-                Spinner spinner = new Spinner(this);
-                List<String> l = MoneyTable.getMoneyTableNames(this);
+        if (item.getItemId() == R.id.show_all_select) {
+            Spinner spinner = new Spinner(this);
+            List<String> l = MoneyTable.getMoneyTableNames(this);
 //                Collections.sort(l, new Comparator<String>() {
 //                    @Override
 //                    public int compare(String s, String t1) {
@@ -124,24 +124,23 @@ public class setting_showall extends AppCompatActivity {
 //                    }
 //                });
 
-                l.sort(Collections.reverseOrder());
+            l.sort(Collections.reverseOrder());
 
 //                l.sort(String::compareTo);
-                spinner.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, l));
+            spinner.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, l));
 
-                new AlertDialog.Builder(this)
-                        .setTitle("表示テーブル設定")
-                        .setView(spinner)
-                        .setPositiveButton("表示",(dialogInterface, i) -> {
-                            try {
-                                showAll(((String) spinner.getSelectedItem()));
-                            } catch(Exception e){
-                                toastError();
-                                e.printStackTrace();
-                            }
-                        }).show();
-            }
-            default : return super.onOptionsItemSelected(item);
+            new AlertDialog.Builder(this)
+                    .setTitle("表示テーブル設定")
+                    .setView(spinner)
+                    .setPositiveButton("表示", (dialogInterface, i) -> {
+                        try {
+                            showAll(((String) spinner.getSelectedItem()));
+                        } catch (Exception e) {
+                            toastError();
+                            e.printStackTrace();
+                        }
+                    }).show();
         }
+        return super.onOptionsItemSelected(item);
     }
 }
