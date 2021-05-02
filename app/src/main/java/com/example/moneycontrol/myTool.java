@@ -111,13 +111,19 @@ public class myTool {
     public static class MyLog {
         public static void d(String msg){
             if(!BuildConfig.DEBUG)return;
-            StackTraceElement calledClass = Thread.currentThread().getStackTrace()[3];
+            StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+//            for(StackTraceElement sTE:elements) Log.d("MyLog",sTE.toString());
+            StackTraceElement calledClass = elements[3];
             String tag = "MyLog " + calledClass.getFileName() + "." + calledClass.getMethodName() + "(" + calledClass.getLineNumber() + ")";
             Log.d(tag, msg);
         }
 
         public static void d(){
-            d("Logging!!");
+            // 上とは別々にgetStackTraceしないと、myTool.MyLogで実行したことになってしまう
+            if(!BuildConfig.DEBUG)return;
+            StackTraceElement calledClass = Thread.currentThread().getStackTrace()[3];
+            String tag = "MyLog " + calledClass.getFileName() + "." + calledClass.getMethodName() + "(" + calledClass.getLineNumber() + ")";
+            Log.d(tag, "Logging!!");
         }
     }
 }

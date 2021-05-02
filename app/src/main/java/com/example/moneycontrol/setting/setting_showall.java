@@ -52,7 +52,8 @@ public class setting_showall extends AppCompatActivity {
         new Thread(()->{
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
                 TableLayout table = findViewById(R.id.tableALL);
-                table.removeAllViews();
+                myTool.MyLog.d();
+                handler.post(table::removeAllViews);
                 TextView tv;
 
                 Cursor c = db.rawQuery(MoneyTable.QUERY_SELECT_ALL(table_name), null);

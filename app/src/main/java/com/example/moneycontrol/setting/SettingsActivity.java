@@ -28,6 +28,7 @@ import androidx.preference.EditTextPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
+import com.example.moneycontrol.BuildConfig;
 import com.example.moneycontrol.myTool;
 import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
 import com.example.moneycontrol.sqliteopenhelper.InsertParams;
@@ -65,88 +66,31 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
-            findPreference("show_all").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getContext(), setting_showall.class));
-                return false;
-            });
+            findPreference("show_all").setOnPreferenceClickListener(preference -> show_all());
 
             EditTextPreference editReadDataLimit = findPreference("main_readData_limit");
-            if (editReadDataLimit != null) {
-                editReadDataLimit.setOnBindEditTextListener(
-                        new EditTextPreference.OnBindEditTextListener() {
-                            @Override
-                            public void onBindEditText(@NonNull EditText editText) {
-                                editText.setInputType(InputType.TYPE_CLASS_NUMBER);
-                            }
-                        });
-            }
+//            https://developer.android.com/guide/topics/ui/settings/customize-your-settings?hl=ja#customize_an_edittextpreference_dialog
+            if (editReadDataLimit != null) editReadDataLimit.setOnBindEditTextListener(editText -> editText.setInputType(InputType.TYPE_CLASS_NUMBER));
 
             /*
                 データベース操作
              */
 
-            findPreference("delete").setOnPreferenceClickListener((preference) -> {
-                String tableName = MoneyTable.getTodayTableName();
-                new AlertDialog.Builder(requireContext()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")
-                        .setPositiveButton("削除", (dialogInterface, i) -> {
-                            deleteTable(requireContext());
-                        })
-                        .setNegativeButton("削除しません", null)
-                        .show();
-                return false;
-            });
-
-            findPreference("export").setOnPreferenceClickListener(preference -> {
-                Spinner s = new Spinner(requireContext());
-                s.setAdapter(new ArrayAdapter<>(
-                        requireContext(),
-                        R.layout.support_simple_spinner_dropdown_item,
-                        MoneyTable.getMoneyTableNames(requireContext())
-                ));
-                new AlertDialog.Builder(requireContext()).setTitle("テーブル選択").setView(s)
-                        .setPositiveButton("選択",(dialogInterface, i) -> {
-                            String[] list = new String[]{"csv", "markdown"};
-                            final int[] selected = {-1};
-                            new AlertDialog.Builder(requireContext()).setTitle("エクスポート")
-                                    .setSingleChoiceItems( //setMessageは共存できない
-                                            list, selected[0], new DialogInterface.OnClickListener() {
-                                                @Override
-                                                public void onClick(DialogInterface dialogInterface, int i) {
-                                                    selected[0] = i;
-                                                }
-                                            })
-                                    .setPositiveButton("決定", new DialogInterface.OnClickListener() {
-                                        @Override
-                                        public void onClick(DialogInterface dialogInterface, int i) {
-                                            textExport(list[selected[0]], ((String) s.getSelectedItem()));
-                                        }
-                                    }).show();
-                        })
-                        .show();
-                return false;
-            });
-
-            findPreference("csvImport").setOnPreferenceClickListener(preference -> {
-                startActivity(new Intent(getActivity(), readCSV.class));
-//                deleteTable(requireContext()); //readCSVの中でやる
-                return false;
-            });
-
+            findPreference("delete").setOnPreferenceClickListener(preference -> delete());
+            findPreference("export").setOnPreferenceClickListener(preference -> export());
+            findPreference("csvImport").setOnPreferenceClickListener(preference -> csvImport());
             findPreference("get_balance").setOnPreferenceClickListener(preference -> get_balance());
 
             /*
                 選択項目編集
              */
 
-            Preference.OnPreferenceClickListener editMoneySetting = new Preference.OnPreferenceClickListener() {
-                @Override
-                public boolean onPreferenceClick(Preference preference) {
-                    int itemNum;
-                    for(itemNum = MoneySetting.INCOME; itemNum<=MoneySetting.OUTGO; itemNum++)if(preference.getKey().equals(MoneySetting.TABLE_NAME[itemNum]))break;
-                    myTool.MyLog.d(String.valueOf(itemNum));
-                    editMoneySetting_Dialog(itemNum);
-                    return false;
-                }
+            Preference.OnPreferenceClickListener editMoneySetting = preference -> {
+                int itemNum;
+                for(itemNum = MoneySetting.INCOME; itemNum<=MoneySetting.OUTGO; itemNum++)if(preference.getKey().equals(MoneySetting.TABLE_NAME[itemNum]))break;
+                myTool.MyLog.d(String.valueOf(itemNum));
+                editMoneySetting_Dialog(itemNum);
+                return false;
             };
 
             for(int i=MoneySetting.INCOME; i<=MoneySetting.WALLET; i++)findPreference(MoneySetting.TABLE_NAME[i]).setOnPreferenceClickListener(editMoneySetting);
@@ -167,7 +111,7 @@ public class SettingsActivity extends AppCompatActivity {
                 preference.setSummary(strTime);
                 return false;
             };
-            if (true) { // TODO: テストしないときここfalse
+            if (BuildConfig.DEBUG) {
                 if (p != null) {
                     p.setSummary(MoneyTable.getExistTableNames(getActivity()));
                 }
@@ -191,6 +135,95 @@ public class SettingsActivity extends AppCompatActivity {
                         .setView(e).show();
                 return false;
             });
+        }
+
+        /*
+            関数定義
+         */
+
+        private boolean show_all(){
+            startActivity(new Intent(getContext(), setting_showall.class));
+            return false;
+        }
+
+        private boolean delete(){
+            String tableName = MoneyTable.getTodayTableName();
+            new AlertDialog.Builder(requireContext()).setTitle("テーブル"+tableName+"全削除").setMessage("取り消しできません 消去しますか？")
+                    .setPositiveButton("削除", (dialogInterface, i) -> deleteTable(requireContext()))
+                    .setNegativeButton("削除しません", null)
+                    .show();
+            return false;
+        }
+
+        private boolean export(){
+            Spinner s = new Spinner(requireContext());
+            s.setAdapter(new ArrayAdapter<>(
+                    requireContext(),
+                    R.layout.support_simple_spinner_dropdown_item,
+                    MoneyTable.getMoneyTableNames(requireContext())
+            ));
+            new AlertDialog.Builder(requireContext()).setTitle("テーブル選択").setView(s)
+                    .setPositiveButton("選択",(dialogInterface, i) -> {
+                        String[] list = new String[]{"csv", "markdown"};
+                        final int[] selected = {-1};
+                        new AlertDialog.Builder(requireContext()).setTitle("エクスポート")
+                                .setSingleChoiceItems( //setMessageは共存できない
+                                        list, selected[0], new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialogInterface, int i) {
+                                                selected[0] = i;
+                                            }
+                                        })
+                                .setPositiveButton("決定", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialogInterface, int i) {
+                                        textExport(list[selected[0]], ((String) s.getSelectedItem()));
+                                    }
+                                }).show();
+                    })
+                    .show();
+            return false;
+        }
+
+        private boolean csvImport(){
+            startActivity(new Intent(getActivity(), readCSV.class));
+//                deleteTable(requireContext()); //readCSVの中でやる
+            return false;
+        }
+
+        private boolean get_balance(){
+            Context context = requireContext();
+            Calendar c = Calendar.getInstance();
+            String tableNow = MoneyTable.getCalendarTableName(c);
+            c.add(Calendar.MONTH,-1);
+            String tablePre = MoneyTable.getCalendarTableName(c);
+            List<String> wallets = MoneySetting.getList(context, 2).second;
+            List<Integer> list = new ArrayList<>();
+            new AlertDialog.Builder(context).setTitle(tablePre+" -> "+tableNow)
+                    .setMultiChoiceItems(wallets.toArray(new CharSequence[0]), null, new DialogInterface.OnMultiChoiceClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i, boolean b) {
+                            if(b)list.add(i);
+                            if(!b)list.removeIf(Predicate.isEqual(i));
+                        }
+                    })
+                    .setPositiveButton("実行",(dialogInterface, i) -> {
+                        for(int ii:list){
+                            String selected_wallet = wallets.get(ii);
+//                                Log.d("get_balance",selected_wallet);
+                            int nowHaveData = MoneyTable.countData(context,tableNow,"wallet",selected_wallet);
+                            int preHaveData = MoneyTable.countData(context,tablePre,"wallet",selected_wallet);
+//                                Log.d("get_balance",String.format(Locale.US,"now=%d,pre=%d",nowHaveData,preHaveData));
+                            if(nowHaveData==0 && preHaveData>0){
+                                int pre_balance = MoneyTable.getBalanceOf(context,tablePre,selected_wallet);
+                                new AsyncInsert(context, null).execute(new InsertParams(
+                                        null,null,null,pre_balance,
+                                        selected_wallet,"残高調整", "from " + tablePre
+                                ));
+                            }
+                        }
+                    }).show();
+            return false;
         }
 
         /**
@@ -317,41 +350,6 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                     })
                     .setNeutralButton("閉じる",null).show();
-        }
-
-        private boolean get_balance(){
-            Context context = requireContext();
-            Calendar c = Calendar.getInstance();
-            String tableNow = MoneyTable.getCalendarTableName(c);
-            c.add(Calendar.MONTH,-1);
-            String tablePre = MoneyTable.getCalendarTableName(c);
-            List<String> wallets = MoneySetting.getList(context, 2).second;
-            List<Integer> list = new ArrayList<>();
-            new AlertDialog.Builder(context).setTitle(tablePre+" -> "+tableNow)
-                .setMultiChoiceItems(wallets.toArray(new CharSequence[0]), null, new DialogInterface.OnMultiChoiceClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i, boolean b) {
-                        if(b)list.add(i);
-                        if(!b)list.removeIf(Predicate.isEqual(i));
-                    }
-                })
-                .setPositiveButton("実行",(dialogInterface, i) -> {
-                    for(int ii:list){
-                        String selected_wallet = wallets.get(ii);
-//                                Log.d("get_balance",selected_wallet);
-                        int nowHaveData = MoneyTable.countData(context,tableNow,"wallet",selected_wallet);
-                        int preHaveData = MoneyTable.countData(context,tablePre,"wallet",selected_wallet);
-//                                Log.d("get_balance",String.format(Locale.US,"now=%d,pre=%d",nowHaveData,preHaveData));
-                        if(nowHaveData==0 && preHaveData>0){
-                            int pre_balance = MoneyTable.getBalanceOf(context,tablePre,selected_wallet);
-                            new AsyncInsert(context, null).execute(new InsertParams(
-                                    null,null,null,pre_balance,
-                                    selected_wallet,"残高調整", "from " + tablePre
-                            ));
-                        }
-                    }
-                }).show();
-            return false;
         }
     }
 }

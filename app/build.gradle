@@ -31,8 +31,8 @@ android {
         applicationId "com.example.moneycontrol"
         minSdkVersion 26
         targetSdkVersion 29
-        versionCode 59 //バージョンアップするごとにインクリメント
-        versionName "1.8.9.1" //ユーザーに表示されるバージョン文字列
+        versionCode 60 //バージョンアップするごとにインクリメント
+        versionName "1.8.9.2" //ユーザーに表示されるバージョン文字列
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,8 @@ android {
         }
         debug {
             signingConfig signingConfigs.config
+            // https://qiita.com/masaibar/items/87cd03d3824ae8e1e16a#%E3%83%90%E3%83%BC%E3%82%B8%E3%83%A7%E3%83%B3%E5%90%8D
+            versionNameSuffix "_debug"
         }
     }
     compileOptions {
