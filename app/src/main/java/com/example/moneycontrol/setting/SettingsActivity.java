@@ -15,13 +15,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.util.Pair;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.preference.EditTextPreference;
@@ -30,8 +27,8 @@ import androidx.preference.PreferenceFragmentCompat;
 
 import com.example.moneycontrol.BuildConfig;
 import com.example.moneycontrol.myTool;
-import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
-import com.example.moneycontrol.sqliteopenhelper.InsertParams;
+import com.example.moneycontrol.dbTools.AsyncInsert;
+import com.example.moneycontrol.dbTools.InsertParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;

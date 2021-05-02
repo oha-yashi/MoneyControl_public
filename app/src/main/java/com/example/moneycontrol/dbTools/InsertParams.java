@@ -1,4 +1,4 @@
-package com.example.moneycontrol.sqliteopenhelper;
+package com.example.moneycontrol.dbTools;
 
 import android.content.ContentValues;
 import android.database.Cursor;

@@ -1,9 +1,11 @@
-package com.example.moneycontrol.sqliteopenhelper;
+package com.example.moneycontrol.dbTools;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+
+import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 
 /**
  * コンストラクタにはContextと、処理後の動作（リロードを想定）を設定してあげる（static云々でこちらからは引っ張れない）

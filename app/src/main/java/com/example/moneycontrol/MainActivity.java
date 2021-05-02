@@ -39,9 +39,9 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.preference.PreferenceManager;
 
 import com.example.moneycontrol.setting.SettingsActivity;
-import com.example.moneycontrol.sqliteopenhelper.AsyncInsert;
-import com.example.moneycontrol.sqliteopenhelper.InsertParams;
-import com.example.moneycontrol.sqliteopenhelper.MemoryParams;
+import com.example.moneycontrol.dbTools.AsyncInsert;
+import com.example.moneycontrol.dbTools.InsertParams;
+import com.example.moneycontrol.dbTools.MemoryParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.google.android.material.snackbar.Snackbar;
