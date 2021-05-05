@@ -28,6 +28,8 @@
         <activity
             android:name=".setting.readCSV"
             android:theme="@style/myTransparent"/>
+        <activity android:name=".dbTools.EditDB"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert"/>
     </application>
 
 </manifest>

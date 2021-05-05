@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import com.example.moneycontrol.MyTool;
 import com.example.moneycontrol.dbTools.InsertParams;
 
 import java.text.SimpleDateFormat;
@@ -27,10 +28,11 @@ public class MoneyTable extends SQLiteOpenHelper {
 
     //ここで一応宣言時代入ができている。デフォルトはgetTodayTableName
     private static String TABLE_NAME = getTodayTableName();
-    public static String QUERY_SELECT_ALL(String tableName) {return "SELECT * FROM " + tableName;}
-    public static String QUERY_CREATE(String tableName) {return "CREATE TABLE IF NOT EXISTS " + tableName + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
-    public static String QUERY_DELETE(String tableName, int id) {return "DELETE FROM " + tableName + " WHERE _id=" + id;}
-    public static String QUERY_DROP(String tableName) {return "DROP TABLE " + tableName;}
+    public static String QUERY_SELECT_ALL(String tableName) { return "SELECT * FROM " + tableName; }
+    public static String QUERY_SELECT_BY_ID(String tableName,int id){ return "SELECT * FROM " + tableName + " WHERE _id="+id; }
+    public static String QUERY_CREATE(String tableName) { return "CREATE TABLE IF NOT EXISTS " + tableName + " (" + String.join(", ", DATABASE_COLUMNS) + ")";}
+    public static String QUERY_DELETE(String tableName, int id) { return "DELETE FROM " + tableName + " WHERE _id=" + id;}
+    public static String QUERY_DROP(String tableName) { return "DROP TABLE " + tableName;}
 
     public static String getTodayTableName(){
         return getCalendarTableName(Calendar.getInstance());
@@ -54,6 +56,11 @@ public class MoneyTable extends SQLiteOpenHelper {
         return stringBuilder.toString();
     }
 
+    /**
+     * YyyyyMmmのテーブルのリストを渡す
+     * @param context
+     * @return
+     */
     public static List<String> getMoneyTableNames(Context context){
         String QUERY_GET_TABLES = "SELECT name FROM sqlite_master WHERE type ='table' AND name LIKE 'Y%M%'";
         List<String> rtn = new ArrayList<>();
@@ -111,6 +118,28 @@ public class MoneyTable extends SQLiteOpenHelper {
         return count;
     }
 
+    public static int getRecentId(Context context, String table){
+        String QUERY = "SELECT _id FROM "+table+" ORDER BY timestamp DESC LIMIT 1";
+        int rtn = -1;
+        try(SQLiteDatabase db = newDatabase(context)){
+            Cursor cursor = db.rawQuery(QUERY, null);
+            cursor.moveToFirst();
+            rtn = cursor.getInt(0);
+            cursor.close();
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return rtn;
+    }
+    public static int getRecentId(Context context){
+        return getRecentId(context,getTodayTableName());
+    }
+
+    /**
+     * コンストラクタ
+     * @param context
+     */
     public MoneyTable(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
@@ -224,21 +253,6 @@ public class MoneyTable extends SQLiteOpenHelper {
         return monthSum/days;
     }
 
-    public static int getRecentId(Context context){
-        String QUERY = "SELECT _id FROM "+getTodayTableName()+" ORDER BY timestamp DESC LIMIT 1";
-        int rtn = -1;
-        try(SQLiteDatabase db = newDatabase(context)){
-            Cursor cursor = db.rawQuery(QUERY, null);
-            cursor.moveToFirst();
-            rtn = cursor.getInt(0);
-            cursor.close();
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        return rtn;
-    }
-
     /**
      * 削除メソッド
      * @param context
@@ -270,6 +284,21 @@ public class MoneyTable extends SQLiteOpenHelper {
             rtn = new InsertParams(cursor).toString();
             cursor.close();
         }
+        return rtn;
+    }
+
+    public static boolean isExist(Context context,String table,int id){
+        boolean rtn = true;
+        try (SQLiteDatabase db = newDatabase(context)){
+            String QUERY = "SELECT * FROM " + table + " WHERE _id=" + id;
+            Cursor cursor = db.rawQuery(QUERY, null);
+
+            MyTool.MyLog.format("getCount=%d",cursor.getCount());
+            if(cursor.getCount()==0)rtn = false;
+
+            cursor.close();
+        }
+        MyTool.MyLog.d("rtn="+String.valueOf(rtn));
         return rtn;
     }
 }

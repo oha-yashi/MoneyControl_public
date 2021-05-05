@@ -20,12 +20,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.moneycontrol.MyTool;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 import com.example.moneycontrol.R;
-import com.example.moneycontrol.myTool;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class setting_showall extends AppCompatActivity {
@@ -52,7 +51,7 @@ public class setting_showall extends AppCompatActivity {
         new Thread(()->{
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)) {
                 TableLayout table = findViewById(R.id.tableALL);
-                myTool.MyLog.d();
+                MyTool.MyLog.d();
                 handler.post(table::removeAllViews);
                 TextView tv;
 
@@ -71,7 +70,7 @@ public class setting_showall extends AppCompatActivity {
                     for(int j=0; j<=5; j++){
                         tv = new TextView(this);
                         String getS = c.getString(j);
-                        tv.setText(myTool.nullToSpace(getS));
+                        tv.setText(MyTool.nullToSpace(getS));
 
                         try {
                             tv.setLayoutParams(LP);
@@ -85,8 +84,8 @@ public class setting_showall extends AppCompatActivity {
 
                     tv = new TextView(this);
                     String note;
-                    String g = myTool.getNullableString(c,6);
-                    String n = myTool.getNullableString(c,7);
+                    String g = MyTool.getNullableString(c,6);
+                    String n = MyTool.getNullableString(c,7);
 //                空白判定はTextUtils.isEmptyでOK
                     if(TextUtils.isEmpty(g) || TextUtils.isEmpty(n)){
                         note = String.format("%s%s", g, n);
@@ -125,6 +124,7 @@ public class setting_showall extends AppCompatActivity {
 //                    }
 //                });
 
+            //新しい方から並べる（辞書順の逆順にソート）
             l.sort(Collections.reverseOrder());
 
 //                l.sort(String::compareTo);

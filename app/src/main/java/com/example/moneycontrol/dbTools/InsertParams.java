@@ -9,7 +9,7 @@ import android.util.Pair;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.moneycontrol.myTool;
+import com.example.moneycontrol.MyTool;
 
 import java.util.Calendar;
 
@@ -48,31 +48,31 @@ public class InsertParams {
 
     public InsertParams(Cursor cursor){
 //            _id = cursor.getInt(0);
-        this.calendar = myTool.toCalendar(cursor.getString(1));
+        this.calendar = MyTool.toCalendar(cursor.getString(1));
         this.income = cursor.getInt(2);
         this.outgo = cursor.getInt(3);
         this.balance = cursor.getInt(4);
-        this.wallet = myTool.getNullableString(cursor, 5);
-        this.genre = myTool.getNullableString(cursor, 6);
-        this.note = myTool.getNullableString(cursor, 7);
+        this.wallet = MyTool.getNullableString(cursor, 5);
+        this.genre = MyTool.getNullableString(cursor, 6);
+        this.note = MyTool.getNullableString(cursor, 7);
 
         zeroToNull();
     }
 
     public String toString(){
         Log.d("InsertParams.toString","income="+income);
-        return myTool.toTimestamp(calendar) + "," +
-                myTool.nullToSpace(income) + "," +
-                myTool.nullToSpace(outgo) + "," +
+        return MyTool.toTimestamp(calendar) + "," +
+                MyTool.nullToSpace(income) + "," +
+                MyTool.nullToSpace(outgo) + "," +
                 balance + "," +
                 wallet + "," +
-                myTool.nullToSpace(genre) + "," +
-                myTool.nullToSpace(note);
+                MyTool.nullToSpace(genre) + "," +
+                MyTool.nullToSpace(note);
     }
 
     public ContentValues toContentValues(){
         ContentValues cv = new ContentValues();
-        cv.put("timestamp", myTool.toTimestamp(calendar));
+        cv.put("timestamp", MyTool.toTimestamp(calendar));
         cv.put("income", income);
         cv.put("outgo", outgo);
         cv.put("balance", balance);
@@ -83,8 +83,8 @@ public class InsertParams {
     }
 
     public String getStatus(){
-        return myTool.isHavePlusValue(income) ? "△" :
-                myTool.isHavePlusValue(outgo) ? "▼" : "";
+        return MyTool.isHavePlusValue(income) ? "△" :
+                MyTool.isHavePlusValue(outgo) ? "▼" : "";
     }
 
     public String getCombinedNote(){
@@ -101,7 +101,7 @@ public class InsertParams {
             @NonNull Integer balance1, @NonNull Integer balance2,
             @NonNull String wallet1, @NonNull String wallet2,
             @Nullable String noteByGenre){
-        myTool.MyLog.d();
+        MyTool.MyLog.d();
         Calendar c1 = calendar==null ? Calendar.getInstance() : calendar;
         Calendar c2 = Calendar.getInstance();
         c2.setTime(c1.getTime());

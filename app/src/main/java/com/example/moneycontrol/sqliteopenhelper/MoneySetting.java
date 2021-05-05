@@ -108,4 +108,18 @@ public class MoneySetting extends SQLiteOpenHelper {
 
         return Pair.create(listInt,listStr);
     }
+
+    /**
+     * IncomeとOutgoのgenreを連結して返す
+     * @param context
+     * @return {"収入",{収入リスト},"支出",{支出リスト}}
+     */
+    public static List<String> getGenreList(Context context){
+        List<String> genreList = new ArrayList<>();
+        genreList.add("収入");
+        genreList.addAll(getList(context,INCOME).second);
+        genreList.add("支出");
+        genreList.addAll(getList(context,OUTGO).second);
+        return genreList;
+    }
 }

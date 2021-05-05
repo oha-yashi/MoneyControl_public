@@ -31,6 +31,11 @@
             android:title="残高引継ぎ"
             android:summary="前月から指定したwalletの残高を引継ぎます"/>
 
+        <Preference
+            android:key="edit_db"
+            android:title="DB項目編集"
+            android:summary="任意の項目を編集します（編集可能箇所は随時追加）"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="選択項目編集">

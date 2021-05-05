@@ -97,6 +97,10 @@ public class MainActivity extends AppCompatActivity {
 
         editMoney = findViewById(R.id.editMoney);
         editMemo = findViewById(R.id.editMemo);
+//        if(BuildConfig.DEBUG){
+//            editMemo.setHint("使用不可");
+//            editMemo.setEnabled(false);
+//        }
         todayOut = findViewById(R.id.todayOutgoView);
         spnWallet = findViewById(R.id.spinner);
         spnWallet2 = findViewById(R.id.spinner2);
@@ -164,12 +168,12 @@ public class MainActivity extends AppCompatActivity {
         /**
          * リストに出すタイトルと対応する関数それぞれの配列のペア
          */
-        Pair<String[], myTool.MyFunc[]> fn_pairs = Pair.create(
+        Pair<String[], MyTool.MyFunc[]> fn_pairs = Pair.create(
                 new String[]{"残額表示", "メモリー", "id削除"},
-                new myTool.MyFunc[]{
-                        new myTool.MyFunc(this::fn_checkBalanceDialog),
-                        new myTool.MyFunc(this::fn_memoryInsert),
-                        new myTool.MyFunc(this::fn_deleteById)
+                new MyTool.MyFunc[]{
+                        new MyTool.MyFunc(this::fn_checkBalanceDialog),
+                        new MyTool.MyFunc(this::fn_memoryInsert),
+                        new MyTool.MyFunc(this::fn_deleteById)
                 }
         );
         findViewById(R.id.functionButton).setOnClickListener(view -> new AlertDialog.Builder(this).setTitle("多機能ボタン")
@@ -177,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
                 .setNeutralButton("閉じる",null)
                 .show());
         reload();
-        myTool.MyLog.d();
+        MyTool.MyLog.d();
     }
     //End of OnCreate
 
@@ -354,11 +358,11 @@ public class MainActivity extends AppCompatActivity {
     private void setHistoryTable(TableLayout tableLayout, InsertParams params){
         String textStatus = params.getStatus();
         String textMoney =
-                myTool.isHavePlusValue(params.income) ? params.income.toString() :
-                myTool.isHavePlusValue(params.outgo) ? params.outgo.toString() : "";
+                MyTool.isHavePlusValue(params.income) ? params.income.toString() :
+                MyTool.isHavePlusValue(params.outgo) ? params.outgo.toString() : "";
         String textNote = params.getCombinedNote();
         Pair<?,?>[] set_TextGravity = new Pair[]{
-                Pair.create(myTool.toTimestamp(params.calendar),Gravity.START),
+                Pair.create(MyTool.toTimestamp(params.calendar),Gravity.START),
                 Pair.create(textStatus, Gravity.CENTER),
                 Pair.create(textMoney, Gravity.END),
                 Pair.create(params.wallet, Gravity.CENTER),
@@ -453,7 +457,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("Data: ¥"+balanceNow+" ->")
                 .setView(editText)
                 .setPositiveButton("実行", (dialogInterface, i) -> {
-                    int balanceNew = myTool.getNullableInt(editText);
+                    int balanceNew = MyTool.getNullableInt(editText);
                     int diff = balanceNew - balanceNow;
                     if(diff==0)return;
                         new AsyncInsert(this, this::reload)
@@ -501,13 +505,10 @@ public class MainActivity extends AppCompatActivity {
         MemoryParams memoryParams = new MemoryParams(this);
         View v = getLayoutInflater().inflate(R.layout.memory_insert_add,null);
         List<String> walletList = MoneySetting.getList(this,MoneySetting.WALLET).second;
-        List<String> genreList = MoneySetting.getList(this,MoneySetting.INCOME).second;
+        List<String> genreList = MoneySetting.getGenreList(this);
         Spinner miaWallet = v.findViewById(R.id.MIA_wallet), miaGenre = v.findViewById(R.id.MIA_genre);
         miaWallet.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,walletList));
-        genreList.add(0,"収入");
         int boundary = genreList.size();
-        genreList.add("支出");
-        genreList.addAll(MoneySetting.getList(this,MoneySetting.OUTGO).second);
         miaGenre.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,genreList));
         new AlertDialog.Builder(this).setTitle("メモリー追加")
                 .setView(v)

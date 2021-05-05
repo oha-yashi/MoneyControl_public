@@ -14,11 +14,14 @@
         <!-- Customize your theme here. -->
     </style>
 
-<!--  自作透明style for readCSV  -->
+<!--  自作透明style  -->
 <!--  https://qiita.com/hisash1/items/0bef0158f644a10c6782  -->
     <style name="myTransparent" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowTranslucentNavigation">true</item>
+        <item name="statusBarBackground">@android:color/transparent</item>
+        <item name="statusBarForeground">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
     </style>
 </resources>

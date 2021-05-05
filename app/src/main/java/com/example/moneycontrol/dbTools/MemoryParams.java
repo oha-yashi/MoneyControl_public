@@ -7,7 +7,7 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
-import com.example.moneycontrol.myTool;
+import com.example.moneycontrol.MyTool;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 
 import java.util.ArrayList;
@@ -70,8 +70,8 @@ public class MemoryParams {
     @Nullable public static String getListTextOf(InsertParams insertParams){
         String note = insertParams.getCombinedNote();
         String rtn;
-        if(myTool.isHavePlusValue(insertParams.income))rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);
-        else if(myTool.isHavePlusValue(insertParams.outgo))rtn = String.format(Locale.US,"-%d for %s from %s",insertParams.outgo,note,insertParams.wallet);
+        if(MyTool.isHavePlusValue(insertParams.income))rtn = String.format(Locale.US,"+%d for %s from %s",insertParams.income,note,insertParams.wallet);
+        else if(MyTool.isHavePlusValue(insertParams.outgo))rtn = String.format(Locale.US,"-%d for %s from %s",insertParams.outgo,note,insertParams.wallet);
         else rtn = null;
         return rtn;
     }

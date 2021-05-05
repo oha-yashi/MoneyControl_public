@@ -26,8 +26,9 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
 import com.example.moneycontrol.BuildConfig;
-import com.example.moneycontrol.myTool;
+import com.example.moneycontrol.MyTool;
 import com.example.moneycontrol.dbTools.AsyncInsert;
+import com.example.moneycontrol.dbTools.EditDB;
 import com.example.moneycontrol.dbTools.InsertParams;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
@@ -63,7 +64,7 @@ public class SettingsActivity extends AppCompatActivity {
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
-            findPreference("show_all").setOnPreferenceClickListener(preference -> show_all());
+            findPreference("show_all").setOnPreferenceClickListener(preference -> { startActivity(new Intent(requireContext(), setting_showall.class));return false; });
 
             EditTextPreference editReadDataLimit = findPreference("main_readData_limit");
 //            https://developer.android.com/guide/topics/ui/settings/customize-your-settings?hl=ja#customize_an_edittextpreference_dialog
@@ -77,6 +78,7 @@ public class SettingsActivity extends AppCompatActivity {
             findPreference("export").setOnPreferenceClickListener(preference -> export());
             findPreference("csvImport").setOnPreferenceClickListener(preference -> csvImport());
             findPreference("get_balance").setOnPreferenceClickListener(preference -> get_balance());
+            findPreference("edit_db").setOnPreferenceClickListener(preference -> { startActivity(new Intent(requireContext(), EditDB.class));return false; });
 
             /*
                 選択項目編集
@@ -85,7 +87,7 @@ public class SettingsActivity extends AppCompatActivity {
             Preference.OnPreferenceClickListener editMoneySetting = preference -> {
                 int itemNum;
                 for(itemNum = MoneySetting.INCOME; itemNum<=MoneySetting.OUTGO; itemNum++)if(preference.getKey().equals(MoneySetting.TABLE_NAME[itemNum]))break;
-                myTool.MyLog.d(String.valueOf(itemNum));
+                MyTool.MyLog.d(String.valueOf(itemNum));
                 editMoneySetting_Dialog(itemNum);
                 return false;
             };
@@ -104,7 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
 //            テストスペース
             Preference p = findPreference("prefTest");
             Preference.OnPreferenceClickListener pc = preference -> {
-                String strTime = myTool.toTimestamp(Calendar.getInstance());
+                String strTime = MyTool.toTimestamp(Calendar.getInstance());
                 preference.setSummary(strTime);
                 return false;
             };
@@ -122,6 +124,13 @@ public class SettingsActivity extends AppCompatActivity {
             });
         }
 
+        /**
+         *
+         * End SettingsFragment setting
+         *
+         */
+
+
         //        テストスペースに、joinedColumnをコピペできるダイアログを出す
         private void prefTest(Preference p) {
             EditText e = new EditText(getActivity());
@@ -138,10 +147,10 @@ public class SettingsActivity extends AppCompatActivity {
             関数定義
          */
 
-        private boolean show_all(){
-            startActivity(new Intent(getContext(), setting_showall.class));
-            return false;
-        }
+//        private boolean show_all(){
+//            startActivity(new Intent(getContext(), setting_showall.class));
+//            return false;
+//        }
 
         private boolean delete(){
             String tableName = MoneyTable.getTodayTableName();
@@ -233,7 +242,7 @@ public class SettingsActivity extends AppCompatActivity {
             StringBuilder exportText = new StringBuilder();
             boolean isCSV = type.equals("csv");
             boolean isMarkdown = type.equals("markdown");
-            myTool.MyLog.d(type);
+            MyTool.MyLog.d(type);
             new Thread(() -> {
                 sendIntent.setAction(Intent.ACTION_SEND);
 
@@ -256,7 +265,7 @@ public class SettingsActivity extends AppCompatActivity {
                     if (isMarkdown) exportText.append("|");
                     for (int j = 0; j < columns; j++) {
                         String getS = cursor.getString(j);
-                        exportText.append(myTool.nullToSpace(getS));
+                        exportText.append(MyTool.nullToSpace(getS));
                         if (isCSV) exportText.append(",");
                         if (isMarkdown) exportText.append("|");
                     }
