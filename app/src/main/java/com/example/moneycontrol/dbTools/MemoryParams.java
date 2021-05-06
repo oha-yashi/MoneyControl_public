@@ -22,7 +22,6 @@ public class MemoryParams {
     public static final String QUERY_GET = "SELECT * FROM "+MEMORY_TABLE_NAME+" ORDER BY timestamp DESC";
 
     public MemoryParams(Context context) {
-        Log.d("MemoryParams", "Constructor");
         this.context = context;
         MoneyTable.newDatabase(context).execSQL(MoneyTable.QUERY_CREATE(MEMORY_TABLE_NAME));
     }

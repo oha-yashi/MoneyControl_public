@@ -38,7 +38,7 @@ public class MyTool {
         else return Integer.parseInt(rtn);
     }
 
-    private static SimpleDateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+    public static SimpleDateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
 
     /**
      * calendarからSQLite式タイムスタンプに変換

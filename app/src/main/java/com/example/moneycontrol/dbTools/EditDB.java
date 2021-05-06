@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Pair;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -20,6 +21,9 @@ import com.example.moneycontrol.R;
 import com.example.moneycontrol.sqliteopenhelper.MoneySetting;
 import com.example.moneycontrol.sqliteopenhelper.MoneyTable;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -46,53 +50,55 @@ public class EditDB extends AppCompatActivity {
 //    }
 
     private void start(){
-        View v = getLayoutInflater().inflate(R.layout.edit_db_gettableid,null);
+        new Thread(()-> {
+            View v = getLayoutInflater().inflate(R.layout.edit_db_gettableid, null);
 
-        Spinner spinner = v.findViewById(R.id.editDB_spinner);
-        List<String> l = MoneyTable.getMoneyTableNames(this);
-        l.sort(Comparator.reverseOrder());
-        spinner.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,l));
+            Spinner spinner = v.findViewById(R.id.editDB_spinner);
+            List<String> l = MoneyTable.getMoneyTableNames(this);
+            l.sort(Comparator.reverseOrder());
+            spinner.setAdapter(new ArrayAdapter<>(this, R.layout.support_simple_spinner_dropdown_item, l));
 
-        EditText editText = v.findViewById(R.id.editDB_editText);
+            EditText editText = v.findViewById(R.id.editDB_editText);
 //        editText.setText(String.valueOf(id)); // 最初にselectedが呼ばれて自動的にsetされる
 
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+            spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
 //                new Thread(()->{
 //                    id = MoneyTable.getRecentId(adapterView.getContext(),adapterView.getSelectedItem().toString());
 //                    handler.post(()-> editText.setText(String.valueOf(id)));
 //                }).start();
-                id = MoneyTable.getRecentId(adapterView.getContext(),adapterView.getSelectedItem().toString());
-                editText.setText(String.valueOf(id));
-            }
+                    id = MoneyTable.getRecentId(adapterView.getContext(), adapterView.getSelectedItem().toString());
+                    editText.setText(String.valueOf(id));
+                }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
 
-            }
-        });
-
-        new AlertDialog.Builder(this).setTitle("TABLE,ID選択").setView(v)
-                .setPositiveButton("検索",(dialogInterface, i) -> {
-                    table = spinner.getSelectedItem().toString();
-                    id = Integer.parseInt(editText.getText().toString());
-                    MyTool.MyLog.format("selected table=%s, id=%d",table,id);
+                }
+            });
+            handler.post(()->new AlertDialog.Builder(this).setTitle("TABLE,ID選択").setView(v)
+                    .setPositiveButton("検索", (dialogInterface, i) -> {
+                        table = spinner.getSelectedItem().toString();
+                        id = Integer.parseInt(editText.getText().toString());
+                        MyTool.MyLog.format("selected table=%s, id=%d", table, id);
 //                    dialogInterface.dismiss();
 
-                    if (MoneyTable.isExist(this, table, id)) {
-                        editDialog(new EnableList().setNoteEnable(true)); // 今はnoteしか編集できないが随時追加
-                    } else {
-                        Toast.makeText(this,"存在しないidです",Toast.LENGTH_SHORT).show();
-                        finish();
-                    }
-                })
+                        if (MoneyTable.isExist(this, table, id)) {
+                            EnableList enableList = new EnableList().setNoteEnable(true).setTimestampEnable(true);
+                            editDialog(enableList);
+                        } else {
+                            Toast.makeText(this, "存在しないidです", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    })
 //                .setOnDismissListener(dialogInterface -> {
 //                    MyTool.MyLog.d("dismissed");
 //                    // ここでfinish()してしまうと、正常遷移の時にもActivityがfinishされてwindowLeakになる
 //                })
-                .setOnCancelListener(dialogInterface -> finish()) //画面外タッチで終了
-                .show();
+                    .setOnCancelListener(dialogInterface -> finish()) //画面外タッチで終了
+                    .show());
+        }).start();
     }
 
     private void editDialog(EnableList e){
@@ -119,6 +125,7 @@ public class EditDB extends AppCompatActivity {
             List<String>  walletList = MoneySetting.getList(this,2).second;
             editWallet.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,walletList));
             List<String> genreList = MoneySetting.getGenreList(this);
+            genreList.add("資金移動");
             editGenre.setAdapter(new ArrayAdapter<>(this,R.layout.support_simple_spinner_dropdown_item,genreList));
 
             try(SQLiteDatabase db = MoneyTable.newDatabase(this)){
@@ -135,12 +142,51 @@ public class EditDB extends AppCompatActivity {
             }
 
             handler.post(()->new AlertDialog.Builder(this).setTitle(table + " : " + id).setView(v)
-                    .setPositiveButton("保存",null)
+                    .setPositiveButton("保存",(dialogInterface, i) -> {
+                        List<Pair<String,String>> changeList = new ArrayList<>();
+
+                        if(e.timestampEnable){
+                            String newTimestamp = editTimestamp.getText().toString();
+                            try {
+                                SimpleDateFormat sdf = MyTool.timestampFormat;
+                                sdf.setLenient(false);
+                                sdf.parse(newTimestamp);
+                                // timestampFormatに合致していなければここでcatchに飛ぶ
+                                changeList.add(Pair.create("timestamp",newTimestamp));
+                            } catch (ParseException parseException) {
+//                                Toast.makeText(this,"timastamp parse Error",Toast.LENGTH_SHORT).show();
+                                parseException.printStackTrace();
+                            }
+                        }
+                        if(e.noteEnable)changeList.add(Pair.create("note",editNote.getText().toString()));
+
+                        editDatabase(changeList);
+                    })
                     .setNeutralButton("閉じる",(dialogInterface, i) -> finish())
                     .setOnCancelListener(dialogInterface -> finish())
                     .show());
 
         }).start();
+    }
+
+    private void editDatabase(List<Pair<String,String>> changeList){editDatabase(table,id,changeList);}
+    private void editDatabase(String _table,int _id,List<Pair<String,String>> changeList){
+        StringBuilder q = new StringBuilder("UPDATE "+_table+" SET");
+        for(Pair<String,String> p:changeList){
+            q.append(" "+p.first+"='"+p.second+"',");
+        }
+        q.deleteCharAt(q.lastIndexOf(","));
+        q.append(" WHERE _id="+_id);
+
+        MyTool.MyLog.d(q.toString());
+
+        try(SQLiteDatabase db = MoneyTable.newDatabase(this)){
+            db.execSQL(q.toString());
+            Toast.makeText(this,"成功！",Toast.LENGTH_SHORT).show();
+        } catch (Exception e){
+            Toast.makeText(this,"失敗",Toast.LENGTH_SHORT).show();
+        }
+        finish();
     }
 
     private class EnableList {
@@ -164,6 +210,11 @@ public class EditDB extends AppCompatActivity {
 
         EnableList(){
             new EnableList(false,false,false,false,false,false,false);
+        }
+
+        public EnableList setTimestampEnable(boolean timestampEnable) {
+            this.timestampEnable = timestampEnable;
+            return this;
         }
 
         public EnableList setNoteEnable(boolean noteEnable) {
