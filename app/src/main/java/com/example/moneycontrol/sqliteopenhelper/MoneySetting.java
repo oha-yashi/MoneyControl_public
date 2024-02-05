@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class MoneySetting extends SQLiteOpenHelper {
+public class  MoneySetting extends SQLiteOpenHelper {
     private static final String TAG = "MSOH";
 
     private static final int DATABASE_VERSION = 4 ;
@@ -29,8 +29,8 @@ public class MoneySetting extends SQLiteOpenHelper {
 
     public static final String[][] DEFAULT_LIST = {
             {"給料", "その他"},
-            {"食費", "生活費", "娯楽", "交通費", "通販", "貯金", "その他"},
-            {"財布", "三井住友", "モバイルSuica", "楽天", "ゆうちょ", "貯金", "その他"}
+            {"食費", "生活費", "娯楽", "ガソリン", "交通費", "通販", "貯金", "その他"},
+            {"財布", "モバイルSuica", "楽天", "ヨドバシ", "三井住友", "ゆうちょ", "貯金", "その他"}
     };
     public static String QUERY_CREATE(int i){ return "CREATE TABLE "+ TABLE_NAME[i] +" (_id INTEGER primary key autoincrement, name TEXT, priority INTEGER)"; }
     public static String QUERY_UPDATE(int i, String from, String to){return String.format("UPDATE %s SET name='%s' WHERE name='%s' ", TABLE_NAME[i],to,from);}
